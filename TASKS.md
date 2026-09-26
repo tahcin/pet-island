@@ -53,13 +53,13 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## M3 Two modes
 
-- [ ] `avatar/buildAvatar.ts`: simple villager with idle, walk, run, wave
-- [ ] `pet/petBrain.ts`: follow, idle, sit, sniff, happy states per PRD 9.2
-- [ ] Tab swaps control, camera height changes, avatar waves when the pet is near
-- [ ] Space in pet mode digs or sniffs with a dust puff
-- [ ] C toggles pet-cam in pet mode
-- [ ] Playwright smoke: load, mocked reading, reveal, play, Tab swap
-- [ ] Commit "M3 two modes"
+- [x] `avatar/buildAvatar.ts`: simple villager with idle, walk, run, wave
+- [x] `pet/petBrain.ts`: follow, idle, sit, sniff, happy states per PRD 9.2
+- [x] Tab swaps control, camera height changes, avatar waves when the pet is near
+- [x] Space in pet mode digs or sniffs with a dust puff
+- [x] C toggles pet-cam in pet mode
+- [x] Playwright smoke: load, mocked reading, reveal, play, Tab swap
+- [x] Commit "M3 two modes"
 
 ## Checkpoint B: first playable
 

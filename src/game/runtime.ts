@@ -39,14 +39,27 @@ export interface CameraRig {
   zoom: number;
   /** Set to snap the camera to its target on the next frame. */
   snap: boolean;
+  /** Pet-cam wanted (C in pet mode). */
+  petCam: boolean;
+  /** 0 = third person, 1 = pet-cam; eased over the 1.7 s swoop. */
+  petCamBlend: number;
+}
+
+/** A timed pet action started by the player in pet mode (Space digs or sniffs). */
+export interface PetAction {
+  kind: "dig" | "sniff" | null;
+  time: number;
 }
 
 export const runtime = {
   avatar: makeBody(1.3, 0.35),
   pet: makeBody(0.7, 0.35),
-  camera: { yaw: 0, pitch: 0.62, zoom: 1.35, snap: true } as CameraRig,
+  camera: { yaw: 0, pitch: 0.62, zoom: 1.35, snap: true, petCam: false, petCamBlend: 0 } as CameraRig,
   /** Seconds since the controlled character last had movement input. */
   idleTime: 0,
+  /** Where the camera looks; the shadow frustum follows it. */
+  focus: new THREE.Vector3(),
+  petAction: { kind: null, time: 0 } as PetAction,
 };
 
 export function resetBody(b: Body, x: number, y: number, z: number, yaw: number): void {

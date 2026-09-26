@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGame } from "../store";
@@ -7,51 +7,19 @@ import Terrain from "../world/Terrain";
 import Water from "../world/Water";
 import SkyDome, { SKY_COLOR } from "../render/SkyDome";
 import Lights from "../render/Lights";
-import { applyBend, bendUniforms } from "../render/bend";
-import { toonMaterial } from "../render/toon";
+import { bendUniforms } from "../render/bend";
 import FollowCamera from "../control/FollowCamera";
 import CharacterController from "../control/CharacterController";
+import ModeKeys from "../control/ModeKeys";
 import { useInput } from "../control/useInput";
 import { resetBody, runtime } from "../game/runtime";
+import { Puffs } from "../game/Effects";
+import Avatar from "../avatar/Avatar";
+import IslandPet from "../pet/IslandPet";
+import { PET_BASE_SPEED } from "../pet/petBrain";
+import { WALK_SPEED } from "../control/movement";
+import Hud from "./Hud";
 import { applyShot, readShot } from "./shots";
-import Pet from "../pet/Pet";
-
-const capsuleMaterial = toonMaterial({ color: "#ffc9a8" });
-const capsuleGeometry = new THREE.CapsuleGeometry(0.35, 0.6, 8, 16);
-
-function Placeholder() {
-  const ref = useRef<THREE.Group>(null);
-  useEffect(() => {
-    if (ref.current) applyBend(ref.current);
-  }, []);
-  useFrame(() => {
-    const g = ref.current;
-    if (!g) return;
-    const b = runtime.avatar;
-    g.position.copy(b.pos);
-    g.rotation.y = b.yaw;
-  });
-  return (
-    <group ref={ref}>
-      <mesh geometry={capsuleGeometry} material={capsuleMaterial} position={[0, 0.65, 0]} castShadow />
-    </group>
-  );
-}
-
-/** The pet idling at its spawn point, looking at the player. The follow brain arrives in M3. */
-function IslandPet() {
-  const spec = useGame((s) => s.reading.spec);
-  const ref = useRef<THREE.Group>(null);
-  useFrame(() => {
-    const g = ref.current;
-    if (!g) return;
-    const b = runtime.pet;
-    g.position.copy(b.pos);
-    const a = runtime.avatar.pos;
-    g.rotation.y = Math.atan2(a.x - b.pos.x, a.z - b.pos.z);
-  });
-  return <Pet ref={ref} spec={spec} state="idle" />;
-}
 
 function Clock() {
   useFrame((_, dt) => {
@@ -78,10 +46,17 @@ function spawnCharacters(world: WorldData) {
   resetBody(runtime.pet, p.x, heightAt(hm, p.x, p.z), p.z, p.yaw);
   runtime.camera.yaw = s.yaw + Math.PI;
   runtime.camera.snap = true;
+  runtime.camera.petCam = false;
+  runtime.camera.petCamBlend = 0;
+  runtime.idleTime = 0;
 }
+
+const controlled = () => (useGame.getState().mode === "pet" ? runtime.pet : runtime.avatar);
+const petBody = () => runtime.pet;
 
 export default function Play() {
   const seed = useGame((s) => s.seed);
+  const mode = useGame((s) => s.mode);
   const world = useMemo(() => generateWorld(seed), [seed]);
   const shot = useMemo(() => readShot(), []);
   const wrap = useRef<HTMLDivElement>(null);
@@ -103,21 +78,24 @@ export default function Play() {
         <color attach="background" args={[SKY_COLOR]} />
         <fog attach="fog" args={[SKY_COLOR, 60, 160]} />
         <SkyDome />
-        <Lights focus={runtime.avatar.pos} />
+        <Lights focus={runtime.focus} />
         <Terrain world={world} />
         <Water />
-        <Placeholder />
-        <IslandPet />
-        <CharacterController world={world} getBody={() => runtime.avatar} enabled={shot === null} />
-        <FollowCamera world={world} getBody={() => runtime.avatar} />
+        <CharacterController
+          world={world}
+          getBody={controlled}
+          speedScale={mode === "pet" ? PET_BASE_SPEED / WALK_SPEED : 1}
+          enabled={shot === null}
+        />
+        <IslandPet world={world} />
+        <Avatar world={world} />
+        <Puffs />
+        <ModeKeys world={world} enabled={shot === null} />
+        <FollowCamera world={world} getBody={controlled} getPet={petBody} />
         <Clock />
         <ReadyFlag world={world} />
       </Canvas>
-      {shot === null && (
-        <div className="hud-seed" data-testid="seed">
-          Seed {seed}
-        </div>
-      )}
+      {shot === null && <Hud />}
     </div>
   );
 }

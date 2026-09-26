@@ -27,6 +27,21 @@ export interface WorldData {
   ramps: Ramp[];
   spawn: Spawn;
   petSpawn: Spawn;
+  /** Seeded spots the pet likes to sniff (props add more in M4). */
+  interest: { x: number; z: number }[];
+}
+
+/** Seeded dry, flat, non-river points for the pet to sniff at. */
+function findInterest(hm: Heightmap, river: River, rng: () => number, count: number): { x: number; z: number }[] {
+  const out: { x: number; z: number }[] = [];
+  for (let tries = 0; tries < count * 40 && out.length < count; tries++) {
+    const x = (rng() * 2 - 1) * 70;
+    const z = (rng() * 2 - 1) * 70;
+    if (isWater(hm, x, z) || slopeAt(hm, x, z) > 0.3 || riverDistanceAt(river, x, z) < 4) continue;
+    if (out.some((q) => Math.hypot(q.x - x, q.z - z) < 5)) continue;
+    out.push({ x, z });
+  }
+  return out;
 }
 
 /** Flattest dry beach point nearest the island center (PRD 7.2 step 11). */
@@ -72,7 +87,8 @@ export function generateWorld(seed: number): WorldData {
   if (isWater(heightmap, petSpawn.x, petSpawn.z)) {
     petSpawn = { x: spawn.x + Math.cos(spawn.yaw) * 1.5, z: spawn.z - Math.sin(spawn.yaw) * 1.5, yaw: spawn.yaw };
   }
-  return { seed, heightmap, river, ramps, spawn, petSpawn };
+  const interest = findInterest(heightmap, river, kit.rng, 90);
+  return { seed, heightmap, river, ramps, spawn, petSpawn, interest };
 }
 
 export const MAX_WALK_SLOPE = 1.0;
