@@ -296,7 +296,7 @@ export default function Reveal() {
   const height = useMemo(() => {
     const pet = buildPet(spec);
     const d = petData(pet);
-    const h = Math.max(d.height, d.radius * 1.5);
+    const h = Math.max(d.height, d.radius * (spec.mascot === "claude" ? 2.4 : 1.5));
     disposePet(pet);
     return h;
   }, [spec]);
@@ -324,7 +324,7 @@ export default function Reveal() {
     if (next) void audio?.resume();
   };
 
-  const style = { "--accent": ACCENT[spec.species] } as CSSProperties;
+  const style = { "--accent": spec.mascot === "claude" ? "#f5c4ae" : ACCENT[spec.species] } as CSSProperties;
   const confidence = spec.confidence;
 
   return (

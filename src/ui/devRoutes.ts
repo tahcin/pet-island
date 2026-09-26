@@ -11,6 +11,7 @@ import {
   type PetSpec,
 } from "../schema/petReading";
 import { isSampleSpecies, sampleReading } from "../pet/samples";
+import { meetClaude } from "./meetClaude";
 
 declare global {
   interface Window {
@@ -40,6 +41,13 @@ export function applyDevRoute(): void {
   // `?shot=N` (screenshots) and `?play` jump straight onto the island with the default pet.
   if (q.has("shot") || q.has("play")) {
     useGame.getState().setScreen("play");
+    return;
+  }
+  if (q.get("mascot") === "claude") {
+    window.__petReady = false;
+    meetClaude();
+    const r = useGame.getState().reading;
+    useGame.getState().setReading({ ...r, spec: { ...r.spec, accessory: pick(q.get("acc"), ACCESSORIES) ?? "none" } });
     return;
   }
   const which = q.get("reveal");

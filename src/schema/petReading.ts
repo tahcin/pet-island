@@ -48,6 +48,8 @@ export const PetSpecSchema = z.object({
   collar: z.object({ present: z.boolean(), color: z.string() }),
   accessory: z.enum(ACCESSORIES),
   confidence: z.number().min(0).max(1),
+  /** Set only by the "Play with Claude" path. Never part of the wire schema sent to Claude. */
+  mascot: z.enum(["claude"]).optional(),
 });
 
 export const VillagerSchema = z.object({
@@ -93,7 +95,7 @@ export type PetReading = z.infer<typeof PetReadingSchema>;
  * length and number range constraints, so those are enforced in normalizeReading instead.
  */
 export const PetReadingWireSchema = z.object({
-  spec: PetSpecSchema.extend({
+  spec: PetSpecSchema.omit({ mascot: true }).extend({
     markingCoverage: z.number(),
     confidence: z.number(),
   }),
@@ -318,6 +320,7 @@ export function normalizeSpec(raw: unknown, base: PetSpec = DEFAULT_READING.spec
     },
     accessory: pickEnum(s.accessory, ACCESSORIES, base.accessory),
     confidence: clamp01(s.confidence, base.confidence),
+    ...(s.mascot === "claude" ? { mascot: "claude" as const } : {}),
   };
 }
 
