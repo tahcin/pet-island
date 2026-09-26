@@ -1,5 +1,5 @@
-import type { Body } from "../game/runtime";
-import { canWalk, heightAt, type WorldData } from "../world/generateWorld";
+import { runtime, villagers, type Body } from "../game/runtime";
+import { SCRAMBLE_SLOPE, canWalk, heightAt, type WorldData } from "../world/generateWorld";
 
 export const WALK_SPEED = 4.8;
 export const RUN_MULT = 1.75;
@@ -13,6 +13,12 @@ export type Collide = (x: number, z: number, r: number, feetY: number) => { x: n
 
 /** Scenery collider registered by the props system (M4); used by every stepBody call. */
 export const collision: { fn: Collide | null } = { fn: null };
+
+function characterBodies(): Body[] {
+  const list = [runtime.avatar, runtime.pet];
+  for (const v of villagers) list.push(v.body);
+  return list;
+}
 
 export function dampAngle(from: number, to: number, rate: number, dt: number): number {
   let d = to - from;
@@ -34,10 +40,21 @@ export function stepBody(
   collide?: Collide,
   turnRate = 10,
 ): void {
+  const p = body.pos;
+  // Scramble: on a cliff face ahead, move at 45 percent speed so climbing reads as effort.
+  const want = Math.hypot(desiredX, desiredZ);
+  if (want > 0.01) {
+    const probe = 0.45;
+    const ahead = heightAt(world.heightmap, p.x + (desiredX / want) * probe, p.z + (desiredZ / want) * probe);
+    const here = heightAt(world.heightmap, p.x, p.z);
+    if (Math.abs(ahead - here) / probe > SCRAMBLE_SLOPE) {
+      desiredX *= 0.45;
+      desiredZ *= 0.45;
+    }
+  }
   const k = 1 - Math.exp(-10 * dt);
   body.vel.x += (desiredX - body.vel.x) * k;
   body.vel.z += (desiredZ - body.vel.z) * k;
-  const p = body.pos;
   let nx = p.x + body.vel.x * dt;
   let nz = p.z + body.vel.z * dt;
   if (!canWalk(world, p.x, p.z, nx, nz)) {
@@ -52,6 +69,23 @@ export function stepBody(
       nz = p.z;
       body.vel.x = 0;
       body.vel.z = 0;
+    }
+  }
+  // Characters push each other apart (player, pet, villagers) so nobody walks through anyone.
+  for (const other of characterBodies()) {
+    if (other === body) continue;
+    const ox = nx - other.pos.x;
+    const oz = nz - other.pos.z;
+    const min = body.radius + other.radius + 0.15;
+    const d2 = ox * ox + oz * oz;
+    if (d2 < min * min && d2 > 1e-8) {
+      const d = Math.sqrt(d2);
+      const px = other.pos.x + (ox / d) * min;
+      const pz = other.pos.z + (oz / d) * min;
+      if (canWalk(world, p.x, p.z, px, pz)) {
+        nx = px;
+        nz = pz;
+      }
     }
   }
   const col = collide ?? collision.fn;

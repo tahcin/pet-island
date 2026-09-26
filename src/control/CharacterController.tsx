@@ -1,5 +1,5 @@
 import { useFrame } from "@react-three/fiber";
-import { isRunning, moveIntent } from "./useInput";
+import { input, isRunning, moveIntent } from "./useInput";
 import { RUN_MULT, WALK_SPEED, stepBody, type Collide } from "./movement";
 import { runtime, type Body } from "../game/runtime";
 import type { WorldData } from "../world/generateWorld";
@@ -24,8 +24,12 @@ export default function CharacterController({
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
     const body = getBody();
-    const intent = enabled ? moveIntent() : { x: 0, y: 0 };
+    const intent = enabled ? { ...moveIntent() } : { x: 0, y: 0 };
     const run = enabled && isRunning();
+    // Pet-cam (first person): A and D turn the view, W and S walk along it; the pet faces the view.
+    const firstPerson = body === runtime.pet && runtime.camera.petCam && runtime.camera.petCamBlend > 0.5;
+    if (firstPerson && !input.dragging) runtime.camera.yaw -= intent.x * 2.3 * dt;
+    if (firstPerson) intent.x = 0;
     const yaw = runtime.camera.yaw;
     // Camera forward on the ground is -(sin yaw, cos yaw); right is (cos yaw, -sin yaw).
     const fx = -Math.sin(yaw);
@@ -39,6 +43,7 @@ export default function CharacterController({
     body.running = run && body.moving;
     runtime.idleTime = body.moving ? 0 : runtime.idleTime + dt;
     stepBody(body, dx, dz, dt, world, collide);
+    if (firstPerson) body.yaw = yaw + Math.PI;
   });
   return null;
 }

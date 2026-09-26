@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useGame } from "../store";
 import SampleScene from "./SampleScene";
+import { LandingSparkles, StepArt } from "./landing/art";
+import "./landing.css";
 
 const STATUS = [
   "Claude is looking at your pet",
@@ -11,7 +13,7 @@ const STATUS = [
   "Finding an island",
 ];
 
-/** "Claude is looking at your pet..." with the polaroid floating and sparkling over the sample island. */
+/** "Claude is looking at your pet..." with the polaroid floating and sparkling over the hero diorama. */
 export default function Reading() {
   const photoUrl = useGame((s) => s.photoUrl);
   const [step, setStep] = useState(0);
@@ -22,6 +24,7 @@ export default function Reading() {
   return (
     <div className="screen reading" data-testid="reading">
       <SampleScene anim="happy" />
+      <LandingSparkles />
       <div className="reading-stack">
         {photoUrl && (
           <div className="polaroid polaroid-float">
@@ -32,6 +35,9 @@ export default function Reading() {
           </div>
         )}
         <div className="reading-status panel">
+          <span className="reading-claude">
+            <StepArt kind="claude" />
+          </span>
           {STATUS[step]}
           <span className="dots">
             <i />
@@ -39,6 +45,11 @@ export default function Reading() {
             <i />
           </span>
         </div>
+      </div>
+      <div className="reading-progress" aria-hidden="true">
+        {STATUS.map((s, i) => (
+          <i key={s} className={i <= step ? "on" : ""} />
+        ))}
       </div>
     </div>
   );

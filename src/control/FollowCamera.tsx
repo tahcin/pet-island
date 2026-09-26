@@ -1,6 +1,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { input, moveIntent } from "./useInput";
+import { input } from "./useInput";
+import { petControl } from "../game/petControl";
 import { runtime, type Body } from "../game/runtime";
 import { bendUniforms } from "../render/bend";
 import { heightAt, type WorldData } from "../world/generateWorld";
@@ -12,6 +13,9 @@ const ZOOM_MAX = 2.6;
 /** The PRD boom constants come from a realistic-scale game; AC frames wider, so the boom is stretched. */
 const BOOM_SCALE = 1.6;
 const SWOOP_SECONDS = 1.7;
+const BASE_FOV = 42;
+const FIRST_PERSON_FOV = 64;
+let bobPhase = 0;
 
 const target = new THREE.Vector3();
 const desired = new THREE.Vector3();
@@ -49,19 +53,15 @@ export default function FollowCamera({
     const dt = Math.min(rawDt, 0.05);
     const rig = runtime.camera;
     rig.yaw -= input.mouseDX * 0.0055;
-    rig.pitch = THREE.MathUtils.clamp(rig.pitch + input.mouseDY * 0.0045, PITCH_MIN, PITCH_MAX);
+    // First person looks up and down less far than the orbit camera.
+    const pMin = rig.petCam ? -0.7 : PITCH_MIN;
+    const pMax = rig.petCam ? 0.7 : PITCH_MAX;
+    rig.pitch = THREE.MathUtils.clamp(rig.pitch + input.mouseDY * 0.0045, pMin, pMax);
     input.mouseDX = 0;
     input.mouseDY = 0;
     if (input.wheel !== 0) {
       rig.zoom = THREE.MathUtils.clamp(rig.zoom * Math.pow(1.1, input.wheel), ZOOM_MIN, ZOOM_MAX);
       input.wheel = 0;
-    }
-
-    // In pet-cam the view follows the pet's heading while it walks forward (not while backing up).
-    if (rig.petCam && !input.dragging && getPet().moving && moveIntent().y >= 0) {
-      const want = getPet().yaw + Math.PI;
-      const d = Math.atan2(Math.sin(want - rig.yaw), Math.cos(want - rig.yaw));
-      rig.yaw += d * (1 - Math.exp(-5 * dt));
     }
 
     const body = getBody();
@@ -99,24 +99,42 @@ export default function FollowCamera({
     // Pet-cam blend.
     const goal = rig.petCam ? 1 : 0;
     if (rig.petCamBlend !== goal) {
-      const step = dt / SWOOP_SECONDS;
+      // Real elapsed time, so the 1.7 s swoop lasts 1.7 s even on a slow frame rate.
+      const step = Math.min(rawDt, 0.25) / SWOOP_SECONDS;
       rig.petCamBlend = goal > rig.petCamBlend ? Math.min(1, rig.petCamBlend + step) : Math.max(0, rig.petCamBlend - step);
     }
     const b = ease(rig.petCamBlend);
     if (b > 0) {
       const pet = getPet();
-      const eye = 0.9 * pet.height + 0.05;
+      // Eye at the pet's head (PRD 9.7: 0.9 h + 0.05), nudged 0.15 m ahead of its center.
+      bobPhase += dt * (pet.speed > 0.3 ? 5 + pet.speed * 1.4 : 0);
+      const bob = pet.speed > 0.3 ? Math.sin(bobPhase) * 0.025 * Math.min(1, pet.speed / 4) : 0;
+      const eye = 0.9 * pet.height + 0.05 + bob;
       const fx = Math.sin(pet.yaw);
       const fz = Math.cos(pet.yaw);
-      camPos.set(pet.pos.x + fx * (pet.radius + 0.15), pet.pos.y + eye, pet.pos.z + fz * (pet.radius + 0.15));
+      const ahead = pet.radius * 0.35 + 0.15;
+      camPos.set(pet.pos.x + fx * ahead, pet.pos.y + eye, pet.pos.z + fz * ahead);
+      camPos.y = Math.max(camPos.y, heightAt(world.heightmap, camPos.x, camPos.z) + 0.25);
       camLook.set(camPos.x - sx * cp, camPos.y - dirY, camPos.z - sz * cp);
       camera.position.lerpVectors(thirdPos, camPos, b);
+      // The PRD swoop: a 4 m arc that only exists mid-transition.
       camera.position.y += 4 * Math.sin(Math.PI * b) * (b < 1 ? 1 : 0);
       lookNow.lerpVectors(thirdLook, camLook, b);
       camera.lookAt(lookNow);
     } else {
       camera.position.copy(thirdPos);
       camera.lookAt(thirdLook);
+    }
+    // Hide the pet's own body once the camera is inside its head, and widen the view.
+    if (petControl.group) petControl.group.visible = b < 0.85;
+    const persp = camera as THREE.PerspectiveCamera;
+    const fov = BASE_FOV + (FIRST_PERSON_FOV - BASE_FOV) * b;
+    // A closer near plane in first person so nearby faces and props do not clip.
+    const near = 0.2 - 0.15 * b;
+    if (Math.abs(persp.fov - fov) > 0.05 || Math.abs(persp.near - near) > 0.005) {
+      persp.fov = fov;
+      persp.near = near;
+      persp.updateProjectionMatrix();
     }
     runtime.focus.copy(body.pos);
     bendUniforms.uBendOrigin.value.copy(camera.position);

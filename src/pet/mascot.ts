@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { DEFAULT_READING, type PetReading, type PetSpec } from "../schema/petReading";
+import { DEFAULT_READING, type Accessory, type PetReading, type PetSpec } from "../schema/petReading";
+import type { PetAnimState } from "./petAnimator";
 import { toonColor } from "../render/toon";
 import { applyBend } from "../render/bend";
 import { petDims, type PetDims } from "./dims";
@@ -61,7 +62,7 @@ function mascotDims(spec: PetSpec): PetDims {
     legRadius: LEG_W / 2,
     headRadius: HEAD_R,
     headScale: [1, 1, 1],
-    // Bandana: the ring front lands just ahead of the face near the bottom of the block.
+    // Neck: used by shared code paths (the bandana itself is built by mascotAccessory).
     neckY: bodyY + 0.072,
     neckZ: -0.01,
     tailY: bodyY,
@@ -121,15 +122,22 @@ export function buildClaudeMascot(spec: PetSpec): THREE.Group {
   const eyeH = 0.14;
   const eyeGeo = geo(new RoundedBoxGeometry(eyeW, eyeH, 0.03, 3, 0.022));
   const shineGeo = geo(new THREE.SphereGeometry(0.017, 12, 10));
+  const arcGeo = geo(new THREE.TorusGeometry(0.042, 0.015, 8, 18, Math.PI));
   const eyeY = HEAD_DROP + H / 2 - 1.55 * U;
   const eyes: THREE.Object3D[] = [];
   for (const side of [1, -1]) {
     const name = side > 0 ? "eyeL" : "eyeR";
     const e = pivot(name, side * 1.75 * U, eyeY, D / 2 - 0.004);
-    e.add(mesh(eyeGeo, EYE, `${name}Slot`, "eyes", [0, 0, 0]));
+    // Open slot eyes (default) and happy arcs ("^ ^"), swapped by updateMascotExpression.
+    const open = pivot(`${name}Open`);
+    open.add(mesh(eyeGeo, EYE, `${name}Slot`, "eyes", [0, 0, 0]));
     const shine = mesh(shineGeo, WHITE, `${name}Shine`, "eyes", [-side * eyeW * 0.18, eyeH * 0.26, 0.016]);
     shine.scale.set(1, 1.2, 0.4);
-    e.add(shine);
+    open.add(shine);
+    const happy = pivot(`${name}Happy`, 0, -0.02, 0.006);
+    happy.add(mesh(arcGeo, EYE, `${name}Arc`, "eyes", [0, 0, 0]));
+    happy.visible = false;
+    e.add(open, happy);
     head.add(e);
     eyes.push(e);
   }
@@ -249,4 +257,189 @@ export const CLAUDE_READING: PetReading = {
 /** Human label for the companion's kind, used in prompts and UI copy. */
 export function speciesLabel(spec: PetSpec): string {
   return spec.mascot === "claude" ? "Claude mascot" : spec.species;
+}
+
+// Accessories.
+
+const BANDANA = "#6aa6e0";
+const BANDANA_DARK = "#4f8ccb";
+
+/**
+ * Mascot-specific accessory builds. Returns null for kinds that use the shared pet build (the
+ * hat and bow already land on the block through mascotDims). The bandana is a flat band around
+ * the lower block with a knotted triangle at the front, well below the eyes.
+ */
+export function mascotAccessory(
+  kind: Exclude<Accessory, "none">,
+  geometries: THREE.BufferGeometry[],
+): { obj: THREE.Object3D; parent: "head" | "body" } | null {
+  if (kind !== "bandana") return null;
+  const geo = <T extends THREE.BufferGeometry>(g: T): T => {
+    geometries.push(g);
+    return g;
+  };
+  const part = (m: THREE.Mesh, name: string): THREE.Mesh => {
+    m.name = name;
+    m.userData.part = "accessory";
+    m.castShadow = true;
+    return m;
+  };
+  const cloth = toonColor(BANDANA);
+  const acc = pivot("accessory");
+  // Head frame: the block spans y from HEAD_DROP - H / 2 to HEAD_DROP + H / 2.
+  acc.position.set(0, HEAD_DROP - H / 2 + 0.13, 0);
+  acc.add(part(new THREE.Mesh(geo(new RoundedBoxGeometry(W + 0.026, 0.05, D + 0.026, 3, 0.024)), cloth), "bandanaBand"));
+  const tw = 0.1;
+  const th = 0.12;
+  const shape = new THREE.Shape();
+  shape.moveTo(-tw, 0);
+  shape.lineTo(tw, 0);
+  shape.quadraticCurveTo(tw * 0.2, -th * 0.55, 0, -th);
+  shape.quadraticCurveTo(-tw * 0.2, -th * 0.55, -tw, 0);
+  const triGeo = geo(
+    new THREE.ExtrudeGeometry(shape, {
+      depth: 0.006,
+      bevelEnabled: true,
+      bevelThickness: 0.008,
+      bevelSize: 0.01,
+      bevelSegments: 2,
+      curveSegments: 10,
+    }),
+  );
+  const tri = part(new THREE.Mesh(triGeo, cloth), "bandanaCloth");
+  tri.position.set(0.02, 0.005, D / 2 + 0.014);
+  tri.rotation.set(0.08, 0, -0.12);
+  acc.add(tri);
+  const knot = part(new THREE.Mesh(geo(new THREE.SphereGeometry(0.026, 12, 10)), toonColor(BANDANA_DARK)), "bandanaKnot");
+  knot.position.set(0.02, 0.004, D / 2 + 0.024);
+  knot.scale.set(1.2, 0.9, 0.7);
+  acc.add(knot);
+  return { obj: acc, parent: "head" };
+}
+
+// Expression. Runs after PetAnimator has written its pose, so it only adds on top.
+
+interface MascotFace {
+  open: THREE.Object3D[];
+  happy: THREE.Object3D[];
+  happyAmt: number;
+  sleepy: number;
+  walk: number;
+  surprise: number;
+  wave: number;
+  waveIn: number;
+  waveSide: number;
+  waves: number;
+  last: PetAnimState;
+  talking: boolean;
+}
+
+const faces = new WeakMap<THREE.Object3D, MascotFace>();
+
+function faceOf(group: THREE.Object3D): MascotFace {
+  let f = faces.get(group);
+  if (!f) {
+    const find = (n: string) => group.getObjectByName(n) ?? new THREE.Object3D();
+    f = {
+      open: [find("eyeLOpen"), find("eyeROpen")],
+      happy: [find("eyeLHappy"), find("eyeRHappy")],
+      happyAmt: 0,
+      sleepy: 0,
+      walk: 0,
+      surprise: 0,
+      wave: -1,
+      waveIn: 2.5,
+      waveSide: 1,
+      waves: 0,
+      last: "idle",
+      talking: false,
+    };
+    faces.set(group, f);
+  }
+  return f;
+}
+
+function approach(v: number, goal: number, rate: number, dt: number): number {
+  return v + (goal - v) * (1 - Math.exp(-rate * dt));
+}
+
+/** While true the mascot bobs and waves a little, standing in for a mouth when it talks. */
+export function setMascotTalking(group: THREE.Object3D, on: boolean): void {
+  faceOf(group).talking = on;
+}
+
+/** A short wide-eyed "!" moment. */
+export function surpriseMascot(group: THREE.Object3D): void {
+  faceOf(group).surprise = 1;
+}
+
+/**
+ * Per-frame expression layer for the mascot: happy arc eyes during happy and hops, wide eyes
+ * when it starts sniffing or digging, sleepy half-closed eyes while sitting, arm waves when idle
+ * or talking, arm swing and a body wiggle when walking, and a stronger squash and stretch.
+ */
+export function updateMascotExpression(group: THREE.Object3D, state: PetAnimState, dt: number, t: number): void {
+  const f = faceOf(group);
+  const p = (group.userData as PetUserData).pivots;
+  if (state !== f.last) {
+    if (state === "sniff" || state === "dig") f.surprise = 1;
+    f.last = state;
+  }
+  const airborne = p.rig.position.y > 0.02;
+  f.happyAmt = approach(f.happyAmt, state === "happy" || airborne ? 1 : 0, 14, dt);
+  f.sleepy = approach(f.sleepy, state === "sit" ? 1 : 0, 3, dt);
+  f.walk = approach(f.walk, state === "walk" || state === "run" ? 1 : 0, 6, dt);
+  f.surprise = Math.max(0, f.surprise - dt / 0.7);
+
+  // Eyes.
+  const arcs = f.happyAmt > 0.5;
+  const pop = arcs ? 0.7 + 0.3 * Math.min(1, (f.happyAmt - 0.5) * 2) : 1;
+  const wide = 1 + 0.35 * Math.sin(Math.PI * Math.min(1, f.surprise * 1.2));
+  for (let i = 0; i < 2; i++) {
+    f.open[i].visible = !arcs;
+    f.happy[i].visible = arcs;
+    f.happy[i].scale.setScalar(pop);
+  }
+  for (const e of [p.eyeL, p.eyeR]) {
+    if (arcs) {
+      e.scale.set(1, 1, 1);
+    } else {
+      e.scale.x = wide;
+      e.scale.y *= wide * (1 - 0.55 * f.sleepy);
+    }
+  }
+
+  // Arms: walk swing, happy cheer, idle and talking waves.
+  if ((state === "idle" || f.talking) && f.wave < 0) {
+    f.waveIn -= dt * (f.talking ? 3 : 1);
+    if (f.waveIn <= 0) {
+      f.wave = 0;
+      f.waves++;
+      f.waveSide = f.waves % 2 === 0 ? -1 : 1;
+      f.waveIn = 4.5 + ((f.waves * 0.618) % 1) * 4;
+    }
+  }
+  let waveAmt = 0;
+  if (f.wave >= 0) {
+    f.wave += dt / 1.5;
+    if (f.wave >= 1) f.wave = -1;
+    else waveAmt = Math.sin(Math.PI * f.wave);
+  }
+  const swing = Math.sin(t * 10) * 0.45 * f.walk;
+  const cheer = f.happyAmt * (1.0 + Math.sin(t * 16) * 0.3);
+  const waveZ = waveAmt * (1.7 + Math.sin(t * 13) * 0.35);
+  p.earL.rotation.x += swing;
+  p.earR.rotation.x -= swing;
+  p.earL.rotation.z += cheer + (f.waveSide > 0 ? waveZ : 0);
+  p.earR.rotation.z -= cheer + (f.waveSide < 0 ? waveZ : 0);
+
+  // Body wiggle when walking, a small bob while talking.
+  p.head.rotation.z += Math.sin(t * 9) * 0.07 * f.walk;
+  p.head.rotation.y += Math.sin(t * 4.5) * 0.05 * f.walk;
+  p.rig.position.y += f.talking ? Math.abs(Math.sin(t * 11)) * 0.012 : 0;
+
+  // Stronger squash and stretch on hops and landings.
+  const sx = p.rig.scale.x - 1;
+  const sy = p.rig.scale.y - 1;
+  p.rig.scale.set(1 + sx * 1.6, 1 + sy * 1.6, 1 + sx * 1.6);
 }

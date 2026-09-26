@@ -4,7 +4,7 @@ import { toonColor, toonMaterial } from "../render/toon";
 import { applyBend } from "../render/bend";
 import { petDims, type PetDims } from "./dims";
 import { hasTexture, markingTextures } from "./markingTexture";
-import { buildClaudeMascot } from "./mascot";
+import { buildClaudeMascot, mascotAccessory } from "./mascot";
 
 /**
  * Parametric chibi pet builder (PRD 6.5). Pure and deterministic: the same spec always gives
@@ -545,7 +545,7 @@ export function setAccessory(group: THREE.Object3D, kind: Accessory, spec?: PetS
   if (kind === "none") return;
   const s = spec ?? data.spec;
   const ctx = new Ctx(s, data.dims);
-  const { obj, parent } = buildAccessory(ctx, kind);
+  const { obj, parent } = (s.mascot === "claude" && mascotAccessory(kind, ctx.geometries)) || buildAccessory(ctx, kind);
   obj.userData.geometries = ctx.geometries;
   applyBend(obj);
   data.pivots[parent].add(obj);

@@ -6,8 +6,8 @@ import { DAY_SECONDS, dayClock, dayLookAt, isShot } from "../juice/dayCycle";
 
 const SUN_OFFSET = new THREE.Vector3(28, 55, 22);
 const SUN_DISTANCE = SUN_OFFSET.length();
-const SHADOW_RADIUS = 40;
-const SHADOW_MAP = 2048;
+const SHADOW_RADIUS = 30;
+const SHADOW_MAP = 4096;
 /** How often the live clock is mirrored into the store (for saves), in seconds. */
 const STORE_SYNC = 2;
 
@@ -86,8 +86,10 @@ export default function Lights({ focus }: { focus: THREE.Vector3 }) {
         castShadow
         shadow-mapSize-width={SHADOW_MAP}
         shadow-mapSize-height={SHADOW_MAP}
-        shadow-bias={-0.0008}
-        shadow-normalBias={0.09}
+        shadow-bias={-0.0004}
+        shadow-radius={5}
+        shadow-intensity={0.6}
+        shadow-normalBias={0.05}
       />
     </>
   );

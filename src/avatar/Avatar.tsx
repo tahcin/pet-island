@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import type * as THREE from "three";
-import { buildAvatar, disposeAvatar } from "./buildAvatar";
+import { buildAvatar, disposeAvatar, lookForSeed } from "./buildAvatar";
 import { AvatarAnimator } from "./avatarAnimator";
 import { runtime } from "../game/runtime";
 import { stepBody } from "../control/movement";
@@ -16,7 +16,8 @@ const WAVE_REARM = 6;
  * stands where it was left and waves when the pet comes within 4 m (PRD 9.3).
  */
 export default function Avatar({ world }: { world: WorldData }) {
-  const root = useMemo(() => buildAvatar(), []);
+  const seed = useGame((s) => s.seed);
+  const root = useMemo(() => buildAvatar(lookForSeed(seed)), [seed]);
   const animator = useMemo(() => new AvatarAnimator(root), [root]);
   const wave = useRef({ armed: true, left: 0 });
   const ref = useRef<THREE.Group>(null);

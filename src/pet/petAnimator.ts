@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { petData, type PetPivots } from "./buildPet";
 import type { PetDims } from "./dims";
+import { updateMascotExpression } from "./mascot";
 
 /**
  * Procedural pet animation (PRD 6.5, constants from docs/inspiration.md section 1).
@@ -264,6 +265,7 @@ export class PetAnimator {
     this.stepLook(dt);
     this.stepBlinkTwitch(dt);
     this.apply(pose, wag, T);
+    if (this.p.eyeL.getObjectByName("eyeLHappy")) updateMascotExpression(this.group, this.current, dt, T);
   }
 
   private computePose(s: PetAnimState, o: Float32Array, T: number, m: number): void {
