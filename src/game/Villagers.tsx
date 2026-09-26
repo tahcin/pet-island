@@ -15,7 +15,8 @@ import {
   villagers,
   type VillagerRuntime,
 } from "./runtime";
-import { controlledBody, labelEls, setLabel, tickTalk, TALK_RANGE } from "./interactions";
+import { controlledBody, labelEls, people, questWorld, setLabel, tickQuests, tickTalk, TALK_RANGE } from "./interactions";
+import { townPeople } from "../town/people";
 import type { EarType, PetSpec, Species, TailType } from "../schema/petReading";
 
 type Home = { x: number; z: number };
@@ -115,7 +116,8 @@ function fallbackHomes(world: WorldData): Home[] {
 
 export function villagerHomes(world: WorldData): Home[] {
   const w: WorldData & { homes?: Home[] } = world;
-  return w.homes && w.homes.length >= 3 ? w.homes : fallbackHomes(world);
+  if (w.homes && w.homes.length >= 6) return w.homes;
+  return w.homes && w.homes.length >= 3 ? [...w.homes, ...fallbackHomes(world)] : [...fallbackHomes(world), ...fallbackHomes(world)];
 }
 
 interface Brain {
@@ -301,17 +303,19 @@ function VillagerBody({ v, spec, world }: VillagerProps) {
 
 /** The three island villagers (PRD F12 and 9.5). Rebuilds when the world or reading changes. */
 export default function Villagers({ world }: { world: WorldData }) {
-  const all = useGame((s) => s.reading.villagers);
+  const reading = useGame((s) => s.reading);
+  const seed = useGame((s) => s.seed);
+  const all = townPeople(reading, seed);
   // Only rebuild when who lives here changes, not when the same details arrive again.
   const who = all
-    .slice(0, 3)
+    .slice(0, 6)
     .map((r) => `${r.name}/${r.species}`)
     .join("|");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const list = useMemo(() => all, [who]);
   const entries = useMemo(() => {
     const homes = villagerHomes(world);
-    return list.slice(0, 3).map((r, i) => {
+    return list.slice(0, 6).map((r, i) => {
       const home = homes[i % homes.length];
       const body = makeBody(0.7, 0.35);
       resetBody(
@@ -343,7 +347,18 @@ export default function Villagers({ world }: { world: WorldData }) {
     };
   }, [entries]);
 
-  useFrame(() => tickTalk());
+  const questTick = useRef(0);
+  useEffect(() => {
+    questWorld.current = world;
+  }, [world]);
+  useFrame((_, dt) => {
+    tickTalk();
+    questTick.current += dt;
+    if (questTick.current > 0.25 && people().length > 0) {
+      questTick.current = 0;
+      tickQuests();
+    }
+  });
 
   return (
     <>

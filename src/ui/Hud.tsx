@@ -1,9 +1,10 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { useGame } from "../store";
-import { enableAudio } from "../juice/audio";
-import { goNewIsland, useJuice } from "../juice/juiceState";
+import { useJuice } from "../juice/juiceState";
 import { speciesAccent } from "../juice/photo";
 import "../juice/juice.css";
+import "./hud-layout.css";
+import { pauseMenu } from "./PauseMenu";
 
 const svg = (children: ReactNode) => (
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -77,10 +78,6 @@ export default function Hud() {
   const reading = useGame((s) => s.reading);
   const mode = useGame((s) => s.mode);
   const seed = useGame((s) => s.seed);
-  const muted = useGame((s) => s.muted);
-  const dayPaused = useGame((s) => s.dayPaused);
-  const setMuted = useGame((s) => s.setMuted);
-  const setDayPaused = useGame((s) => s.setDayPaused);
   const requestPhoto = useJuice((s) => s.requestPhoto);
   const buttons = useRef<HTMLDivElement>(null);
   // The play wrapper captures the pointer on pointerdown for mouse look, which would steal the
@@ -95,8 +92,8 @@ export default function Hud() {
   const name = reading.nameSuggestions[0];
   const hints =
     mode === "companion"
-      ? ["WASD move", "Shift run", "Space play", "T talk", "Tab be the pet", "P photo", "N new island"]
-      : ["WASD move", "Shift run", "Space dig or sniff", "C pet-cam", "Tab back", "P photo", "N new island"];
+      ? ["WASD move", "Space interact", "T talk", "Tab be the pet", "Esc menu"]
+      : ["WASD move", "Space dig or sniff", "C pet-cam", "Tab back", "Esc menu"];
   const accent = speciesAccent(reading.spec.species);
   return (
     <div className="hud" style={{ ["--hud-accent" as string]: accent }}>
@@ -114,30 +111,12 @@ export default function Hud() {
         {mode === "companion" ? `Exploring with ${name}` : `Playing as ${name}`}
       </div>
       <div className="hud-buttons" ref={buttons}>
-        <HudButton
-          label={muted ? "Sound off" : "Sound on"}
-          testId="sound-toggle"
-          active={!muted}
-          onClick={() => {
-            if (muted) enableAudio();
-            setMuted(!muted);
-          }}
-        >
-          {muted ? ICONS.soundOff : ICONS.soundOn}
-        </HudButton>
-        <HudButton
-          label={dayPaused ? "Resume the day" : "Pause the day"}
-          testId="day-toggle"
-          active={dayPaused}
-          onClick={() => setDayPaused(!dayPaused)}
-        >
-          {dayPaused ? ICONS.sun : ICONS.pause}
-        </HudButton>
+        {/* Sound, pausing the day, and a new island live in the pause menu (Esc). */}
         <HudButton label="Photo" keyHint="P" testId="photo-button" onClick={requestPhoto}>
           {ICONS.camera}
         </HudButton>
-        <HudButton label="New island" keyHint="N" testId="new-island-button" onClick={goNewIsland}>
-          {ICONS.island}
+        <HudButton label="Menu" keyHint="Esc" testId="menu-button" onClick={() => pauseMenu.open()}>
+          {ICONS.pause}
         </HudButton>
       </div>
       <div className="hud-hints">

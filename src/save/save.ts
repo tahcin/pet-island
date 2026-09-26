@@ -27,6 +27,9 @@ export interface SaveData {
   inventory: Record<ItemKind, number>;
   collected: string[];
   quests: QuestState[];
+  /** Town fields; optional so older saves still load. */
+  friendship?: number[];
+  bells?: number;
   equipped: Accessory[];
   petMemory: string[];
   chatLog: ChatLine[];
@@ -69,9 +72,12 @@ export function parseSave(raw: unknown): SaveData | null {
   if (!player || !pet || typeof s.seed !== "number" || !s.reading) return null;
   const inv = (s.inventory ?? {}) as Record<string, unknown>;
   const quests = Array.isArray(s.quests)
-    ? s.quests.map((q) => (q === "active" || q === "done" ? q : "notStarted") as QuestState).slice(0, 3)
+    ? s.quests.map((q) => (q === "active" || q === "done" ? q : "notStarted") as QuestState).slice(0, 6)
     : [];
   while (quests.length < 3) quests.push("notStarted");
+  const town: Pick<SaveData, "friendship" | "bells"> = {};
+  if (Array.isArray(s.friendship)) town.friendship = s.friendship.slice(0, 6).map((h) => num(h));
+  if (typeof s.bells === "number") town.bells = num(s.bells);
   const log = Array.isArray(s.chatLog)
     ? s.chatLog
         .filter(
@@ -95,6 +101,7 @@ export function parseSave(raw: unknown): SaveData | null {
     inventory: { bone: num(inv.bone), yarn: num(inv.yarn), carrot: num(inv.carrot), shell: num(inv.shell) },
     collected: strs(s.collected, 500),
     quests,
+    ...town,
     equipped: strs(s.equipped, 4) as Accessory[],
     petMemory: strs(s.petMemory, 8),
     chatLog: log,

@@ -96,6 +96,8 @@ export interface PlacementInput {
   ramps: Ramp[];
   spawn: Point2;
   homes: Point2[];
+  /** Town plaza kept clear of props. */
+  town?: { x: number; z: number; radius: number };
 }
 
 /** Poisson-disk props over the island, filtered by level, slope, water, river, ramps, homes, spawn. */
@@ -117,6 +119,7 @@ export function placeProps(input: PlacementInput): PropInstance[] {
     if (isOnRamp(ramps, x, z)) continue;
     if (Math.hypot(x - spawn.x, z - spawn.z) < PROP_SPAWN_CLEARANCE) continue;
     if (homes.some((h) => Math.hypot(h.x - x, h.z - z) < PROP_HOME_CLEARANCE)) continue;
+    if (input.town && Math.hypot(input.town.x - x, input.town.z - z) < input.town.radius) continue;
     const roll = rng();
     const rotY = rng() * Math.PI * 2;
     const jitter = 0.85 + rng() * 0.3;

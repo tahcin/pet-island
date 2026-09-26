@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import { useGame, type ItemKind } from "../store";
 import { findTarget, hintFor, labelEls, usePlayUi } from "./interactions";
+import { townPeople } from "../town/people";
 import { SpeechBubbleCard } from "../ui/SpeechBubble";
 import { itemName, speciesItem } from "./collectibles";
-import { questDefs } from "./quests";
+import { objectiveText, questDefs } from "./quests";
 import "./play.css";
 
 /** Small inline icons per item (no emoji). */
@@ -57,17 +58,20 @@ function Pill({ kind }: { kind: ItemKind }) {
 
 function QuestCard() {
   const species = useGame((s) => s.reading.spec.species);
-  const villagers = useGame((s) => s.reading.villagers);
+  const reading = useGame((s) => s.reading);
+  const seed = useGame((s) => s.seed);
+  const villagers = townPeople(reading, seed);
+  const names = villagers.map((v) => v.name);
   const quests = useGame((s) => s.quests);
   const inventory = useGame((s) => s.inventory);
-  const defs = questDefs(species).filter((d) => quests[d.villager] !== "notStarted");
+  const defs = questDefs(species).filter((d) => quests[d.villager] === "active" || (d.villager < 2 && quests[d.villager] === "done"));
   if (defs.length === 0) return null;
   return (
     <div className="pi-quests" data-testid="quest-tracker">
       {defs.map((d) => {
         const name = villagers[d.villager]?.name ?? "A friend";
         const done = quests[d.villager] === "done";
-        const have = Math.min(d.count, inventory[d.kind]);
+        const have = d.type === "fetch" ? Math.min(d.count, inventory[d.kind]) : 0;
         return (
           <div key={d.villager} className={`pi-quest${done ? " done" : ""}`} data-testid={`quest-${d.villager}`}>
             <span className="pi-quest-icon">
@@ -76,14 +80,18 @@ function QuestCard() {
                   <circle cx="12" cy="12" r="10" fill="#9ad69a" />
                   <path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              ) : (
+              ) : d.type === "fetch" ? (
                 <ItemIcon kind={d.kind} size={18} />
+              ) : (
+                <span className="pi-quest-dot" />
               )}
             </span>
             <span className="pi-quest-text">
-              {done
-                ? `${name} loved the ${itemName(d.kind, d.count)}`
-                : `${name} wants ${d.count} ${itemName(d.kind, d.count)} (${have} of ${d.count})`}
+              {d.type !== "fetch"
+                ? `${name}: ${objectiveText(d, names, reading.nameSuggestions[0])}`
+                : done
+                  ? `${name} loved the ${itemName(d.kind, d.count)}`
+                  : `${name} wants ${d.count} ${itemName(d.kind, d.count)} (${have} of ${d.count})`}
             </span>
           </div>
         );
@@ -102,15 +110,17 @@ function useHintPoll(): void {
   }, []);
 }
 
-const ACCENTS = ["#ffc9a8", "#d9c8f5", "#bfeccf"];
+const ACCENTS = ["#ffc9a8", "#d9c8f5", "#bfeccf", "#ffe29a", "#bfe0f5", "#f5c6dc"];
 
 /** Name tags, greeting glyphs, and speech bubbles over the villagers (moved per frame by Villagers). */
 function VillagerLabels() {
-  const villagers = useGame((s) => s.reading.villagers);
+  const reading = useGame((s) => s.reading);
+  const seed = useGame((s) => s.seed);
+  const villagers = townPeople(reading, seed);
   const labels = usePlayUi((s) => s.labels);
   return (
     <>
-      {villagers.slice(0, 3).map((r, i) => {
+      {villagers.slice(0, 6).map((r, i) => {
         const l = labels[i];
         const accent = ACCENTS[i];
         return (

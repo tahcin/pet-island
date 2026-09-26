@@ -6,8 +6,8 @@ test("collect an item and talk to a villager", async ({ page }) => {
   page.on("pageerror", (e) => errors.push(e.message));
   await mockReading(page);
   await uploadAndPlay(page);
-  await page.waitForFunction("!!window.__pi && window.__pi.collectibles.length > 0 && window.__pi.villagers.length === 3");
-  await expect(page.locator(".pi-nametag")).toHaveCount(3);
+  await page.waitForFunction("!!window.__pi && window.__pi.collectibles.length > 0 && window.__pi.villagers.length === 6");
+  await expect(page.locator(".pi-nametag")).toHaveCount(6);
 
   // Teleport next to a shell (1 m off so walking does not grab it) and press Space.
   const shell = await page.evaluate(() => {

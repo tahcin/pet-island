@@ -28,6 +28,10 @@ import TalkOverlay from "../talk/TalkOverlay";
 import JuiceExtras from "../juice/JuiceExtras";
 import JuiceOverlay from "../juice/JuiceOverlay";
 import { applyShot, readShot } from "./shots";
+import Minimap from "./Minimap";
+import PauseMenu from "./PauseMenu";
+import Journal from "../town/Journal";
+import ProgressRoot from "../progress/ProgressRoot";
 
 /** Mounted last: drops key presses no system consumed this frame so they never fire late. */
 function InputFlush() {
@@ -94,7 +98,7 @@ export default function Play() {
         <SkyDome />
         <Lights focus={runtime.focus} />
         <Terrain world={world} />
-        <Water />
+        <Water world={world} />
         <CharacterController
           world={world}
           getBody={controlled}
@@ -120,6 +124,10 @@ export default function Play() {
           <PlayOverlay />
           <TalkOverlay />
           <JuiceOverlay />
+          <Minimap world={world} />
+          <PauseMenu />
+          <Journal />
+          <ProgressRoot world={world} />
         </>
       )}
     </div>

@@ -1,0 +1,66 @@
+/*
+ * One bottom-right row, right to left: [menu][photo] buttons, the Journal pill, then the
+ * progress pill. Every piece is 52 px tall, shares one baseline, uses the same corner radius,
+ * and sits 10 px from its neighbour. Fixed widths on the right-hand pieces keep the gaps exact.
+ */
+.hud-buttons {
+  bottom: 44px !important;
+  right: 16px !important;
+  gap: 10px !important;
+  align-items: stretch;
+}
+
+.hud-buttons .hud-btn {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 18px !important;
+}
+
+.hud-dock {
+  bottom: 44px !important;
+  right: 140px !important; /* 16 + 2 x 52 + 10 + 10 */
+  height: 52px;
+  align-items: stretch !important;
+}
+
+.hud-dock .jn-button {
+  box-sizing: border-box;
+  width: 132px;
+  height: 52px !important;
+  padding: 0 14px !important;
+  justify-content: center;
+  border-radius: 18px !important;
+  font-size: 16px;
+}
+
+.pg-pill {
+  box-sizing: border-box;
+  bottom: 44px !important;
+  right: 282px !important; /* 140 + 132 + 10 */
+  height: 52px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-radius: 18px !important;
+  align-items: center;
+}
+
+.hud-hints {
+  max-width: calc(100% - 700px) !important;
+}
+
+@media (max-width: 1150px) {
+  .hud-hints {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .hud-dock {
+    right: 16px !important;
+    bottom: 106px !important;
+  }
+  .pg-pill {
+    right: 16px !important;
+    bottom: 168px !important;
+  }
+}

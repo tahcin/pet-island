@@ -1,4 +1,4 @@
-import { useGame } from "../store";
+import { useGame, type QuestState } from "../store";
 import { resetBody, runtime, type Body } from "../game/runtime";
 import { SAVE_EVERY_MS, SAVE_VERSION, loadSave, returnNews, writeSave, type BodySave, type SaveData } from "./save";
 
@@ -18,6 +18,8 @@ export function snapshot(now = Date.now()): SaveData {
     inventory: { ...g.inventory },
     collected: [...g.collected],
     quests: [...g.quests],
+    friendship: [...g.friendship],
+    bells: g.bells,
     equipped: [...g.equipped],
     petMemory: [...g.petMemory],
     chatLog: g.chatLog.slice(-12),
@@ -75,7 +77,10 @@ export function continueGame(now = Date.now()): boolean {
     mode: data.mode,
     inventory: data.inventory,
     collected,
-    quests: data.quests,
+    // Older saves hold three quest slots; pad to the six townspeople.
+    quests: [...data.quests, ...Array<QuestState>(6).fill("notStarted")].slice(0, 6),
+    friendship: [...(data.friendship ?? []), 0, 0, 0, 0, 0, 0].slice(0, 6),
+    bells: data.bells ?? 0,
     equipped: data.equipped,
     petMemory: data.petMemory,
     chatLog: data.chatLog,

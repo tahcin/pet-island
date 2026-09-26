@@ -42,6 +42,10 @@ interface GameState {
   collected: string[];
   /** Quest state per villager index (0, 1, 2); only two villagers hold quests. */
   quests: QuestState[];
+  /** Friendship hearts per townsperson index (0 to 5). */
+  friendship: number[];
+  /** Bells earned from town quests. */
+  bells: number;
   /** Accessories the pet has earned and wears (quest rewards). */
   equipped: Accessory[];
 
@@ -75,6 +79,8 @@ interface GameState {
   spend: (kind: ItemKind, count: number) => void;
   setQuest: (index: number, state: QuestState) => void;
   equip: (accessory: Accessory) => void;
+  addFriendship: (index: number, hearts: number) => void;
+  addBells: (bells: number) => void;
   remember: (fact: string) => void;
   addChat: (line: ChatLine) => void;
   rememberVillager: (name: string, fact: string) => void;
@@ -88,7 +94,9 @@ interface GameState {
 }
 
 const EMPTY_INVENTORY: Record<ItemKind, number> = { bone: 0, yarn: 0, carrot: 0, shell: 0 };
-const FRESH_QUESTS: QuestState[] = ["notStarted", "notStarted", "notStarted"];
+/** One quest slot per townsperson (three reading villagers plus three townsfolk). */
+const FRESH_QUESTS: QuestState[] = ["notStarted", "notStarted", "notStarted", "notStarted", "notStarted", "notStarted"];
+const FRESH_FRIENDSHIP = [0, 0, 0, 0, 0, 0];
 
 const capPush = <T,>(list: T[], item: T, cap: number): T[] => [...list, item].slice(-cap);
 
@@ -105,6 +113,8 @@ export const useGame = create<GameState>()((set) => ({
   inventory: { ...EMPTY_INVENTORY },
   collected: [],
   quests: [...FRESH_QUESTS],
+  friendship: [...FRESH_FRIENDSHIP],
+  bells: 0,
   equipped: [],
 
   petMemory: [],
@@ -134,6 +144,9 @@ export const useGame = create<GameState>()((set) => ({
   spend: (kind, count) => set((s) => ({ inventory: { ...s.inventory, [kind]: Math.max(0, s.inventory[kind] - count) } })),
   setQuest: (index, state) => set((s) => ({ quests: s.quests.map((q, i) => (i === index ? state : q)) })),
   equip: (accessory) => set((s) => (s.equipped.includes(accessory) ? s : { equipped: [...s.equipped, accessory] })),
+  addFriendship: (index, hearts) =>
+    set((s) => ({ friendship: s.friendship.map((h, i) => (i === index ? Math.min(10, h + hearts) : h)) })),
+  addBells: (bells) => set((s) => ({ bells: s.bells + bells })),
   remember: (fact) => set((s) => ({ petMemory: capPush(s.petMemory, fact, 8) })),
   addChat: (line) => set((s) => ({ chatLog: capPush(s.chatLog, line, 16) })),
   rememberVillager: (name, fact) =>
@@ -147,6 +160,7 @@ export const useGame = create<GameState>()((set) => ({
       inventory: { ...EMPTY_INVENTORY },
       collected: [],
       quests: [...FRESH_QUESTS],
+      friendship: [...FRESH_FRIENDSHIP],
       events: [],
       mode: "companion",
     }),

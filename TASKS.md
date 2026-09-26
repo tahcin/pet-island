@@ -114,6 +114,18 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 - [x] Small rodent archetype
 - [x] Commit "M7 juice"
 
+## V2 polish (after checkpoint B)
+
+- [x] Whole island walkable (cliffs scramble, only water blocks)
+- [x] Water waves, shallows, shore foam; softer and more detailed shadows
+- [x] First-person pet-cam with tank controls; character collisions
+- [x] Claude mascot companion with expressions; landing character selector and judging-ready landing
+- [x] New villager figure with seeded outfits; New Horizons style cottages
+- [x] Expandable minimap with NPCs and waypoint
+- [x] Mini town with 6 townsfolk, 6 quest types, quest journal with Guide me waypoints
+- [x] Retention loop: bond levels, daily streak and tasks, rare finds, stamps, bell shop, passport
+- [x] Pause menu (Esc) with sound, photo, new island; unified bottom-right HUD row
+
 ## Cut list (apply in order if the human says to wrap up)
 
 day and night, ambient audio, small rodent archetype, overheard villager chats, second quest, pet-cam, wind sway, third villager, photo watermark, save and return

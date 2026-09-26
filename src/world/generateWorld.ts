@@ -11,10 +11,12 @@ import {
   type Heightmap,
 } from "./heightmap";
 import { carveRiver, riverDistanceAt, type River } from "./river";
-import { buildRamps, isOnRamp, type Ramp } from "./ramps";
-import { findHomes, placeProps, propInterest, type PropInstance } from "./placement";
+import { buildRamps, type Ramp } from "./ramps";
+import { placeProps, propInterest, type PropInstance } from "./placement";
+import { findTown, type Town } from "./town";
 
 export type { PropInstance, PropType } from "./placement";
+export type { Town, TownHome } from "./town";
 
 export interface Spawn {
   x: number;
@@ -32,8 +34,10 @@ export interface WorldData {
   petSpawn: Spawn;
   /** Seeded spots the pet likes to sniff (props add more in M4). */
   interest: { x: number; z: number }[];
-  /** Three villager home spots on level 1 (PRD 7.2 step 10). */
-  homes: { x: number; z: number }[];
+  /** Six cottages around the town plaza: 0 to 2 for the reading villagers, 3 to 5 for townsfolk. */
+  homes: { x: number; z: number; yaw?: number }[];
+  /** The town plaza near spawn (homes ring it). */
+  town: Town;
   /** Placed scenery (PRD 7.2 step 9), rendered instanced by Props.tsx. */
   props: PropInstance[];
 }
@@ -95,40 +99,33 @@ export function generateWorld(seed: number): WorldData {
     petSpawn = { x: spawn.x + Math.cos(spawn.yaw) * 1.5, z: spawn.z - Math.sin(spawn.yaw) * 1.5, yaw: spawn.yaw };
   }
   const interest = findInterest(heightmap, river, kit.rng, 90);
-  const homes = findHomes(heightmap, river, ramps, spawn, seed);
-  const props = placeProps({ seed, heightmap, river, ramps, spawn, homes });
+  const town = findTown(heightmap, river, ramps, spawn, seed);
+  const homes = town.homes;
+  const props = placeProps({ seed, heightmap, river, ramps, spawn, homes, town });
   interest.push(...propInterest(props, 60));
-  return { seed, heightmap, river, ramps, spawn, petSpawn, interest, homes, props };
+  return { seed, heightmap, river, ramps, spawn, petSpawn, interest, homes, props, town };
 }
 
 export const MAX_WALK_SLOPE = 1.0;
+/** Rise over run above which a character is scrambling up or down a cliff and moves slower. */
+export const SCRAMBLE_SLOPE = 0.9;
 
 /**
- * Movement rule (PRD 7.3): water and river are blocked, cliffs are blocked, and changing
- * terrace level (other than beach to level 1) is only allowed on a ramp.
+ * Movement rule. The whole island is walkable: characters scramble up and down cliff faces
+ * (stepBody slows them on steep ground) and only water and the river block. A short probe
+ * ahead keeps fast movers from stepping into the water in one frame. Ramps stay as the
+ * easy way up.
  */
 export function canWalk(world: WorldData, fromX: number, fromZ: number, toX: number, toZ: number): boolean {
   const hm = world.heightmap;
   if (isWater(hm, toX, toZ)) return false;
-  const h0 = heightAt(hm, fromX, fromZ);
-  const h1 = heightAt(hm, toX, toZ);
   const dist = Math.hypot(toX - fromX, toZ - fromZ);
-  const onRamp = isOnRamp(world.ramps, toX, toZ) || isOnRamp(world.ramps, fromX, fromZ);
-  if (!onRamp) {
-    const l0 = levelAt(hm, fromX, fromZ);
-    const l1 = levelAt(hm, toX, toZ);
-    if (l1 > l0 && l1 >= 2) return false;
-    if (l1 < l0 && l0 >= 2) return false;
-  }
-  // Probe a little ahead so fast movers cannot skip over a cliff band in one frame.
   if (dist > 1e-6) {
-    const ax = toX + ((toX - fromX) / dist) * 0.35;
-    const az = toZ + ((toZ - fromZ) / dist) * 0.35;
-    const ha = heightAt(hm, ax, az);
-    if (Math.abs(ha - h1) / 0.35 > MAX_WALK_SLOPE * 1.6 && !onRamp) return false;
+    const ax = toX + ((toX - fromX) / dist) * 0.3;
+    const az = toZ + ((toZ - fromZ) / dist) * 0.3;
     if (isWater(hm, ax, az)) return false;
   }
-  return Math.abs(h1 - h0) <= Math.max(0.35, dist * MAX_WALK_SLOPE * 1.6);
+  return true;
 }
 
 export { heightAt, levelAt, isWater, slopeAt };

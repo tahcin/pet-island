@@ -17,12 +17,13 @@ describe("placement", () => {
     expect(a.interest).toEqual(b.interest);
   });
 
-  it("places three level 1 homes at least 20 m apart, clear of spawn and water", () => {
+  it("places six town homes around the plaza, clear of spawn and water", () => {
     for (const seed of SEEDS) {
       const w = generateWorld(seed);
-      expect(w.homes.length).toBe(3);
+      expect(w.homes.length).toBe(6);
       for (const h of w.homes) {
-        expect(levelAt(w.heightmap, h.x, h.z)).toBe(1);
+        expect(levelAt(w.heightmap, h.x, h.z)).toBeGreaterThanOrEqual(0);
+        expect(Math.hypot(h.x - w.town.x, h.z - w.town.z)).toBeLessThanOrEqual(w.town.radius);
         expect(isWater(w.heightmap, h.x, h.z)).toBe(false);
         expect(riverDistanceAt(w.river, h.x, h.z)).toBeGreaterThanOrEqual(4);
         expect(Math.hypot(h.x - w.spawn.x, h.z - w.spawn.z)).toBeGreaterThanOrEqual(8);
@@ -30,7 +31,7 @@ describe("placement", () => {
       for (let i = 0; i < w.homes.length; i++) {
         for (let j = i + 1; j < w.homes.length; j++) {
           const d = Math.hypot(w.homes[i].x - w.homes[j].x, w.homes[i].z - w.homes[j].z);
-          expect(d).toBeGreaterThanOrEqual(HOME_MIN_SPACING);
+          expect(d).toBeGreaterThanOrEqual(HOME_MIN_SPACING / 4);
         }
       }
     }

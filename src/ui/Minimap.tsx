@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useGame } from "../store";
 import type { WorldData } from "../world/generateWorld";
 import { HALF, WORLD_SIZE, heightAt, levelOfHeight } from "../world/heightmap";
-import { collectibles, runtime, villagers } from "../game/runtime";
+import { collectibles, runtime, villagers, waypoint } from "../game/runtime";
 import "./minimap.css";
 
 /** Base map resolution in pixels (2 px per meter). */
@@ -157,6 +157,25 @@ function drawLive(
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(mx, my, 2 * k, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Journal "Guide me" waypoint: a pulsing gold star.
+  const wp = waypoint.current;
+  if (wp) {
+    const [wx, wy] = toMap(wp.x, wp.z);
+    const R = 7 * k * (1 + 0.18 * Math.sin(time * 5));
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rr = i % 2 === 0 ? R : R * 0.45;
+      ctx.lineTo(wx + Math.cos(a) * rr, wy + Math.sin(a) * rr);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "#ffd257";
+    ctx.strokeStyle = "#8a5a1e";
+    ctx.lineWidth = 1.4;
     ctx.fill();
     ctx.stroke();
   }

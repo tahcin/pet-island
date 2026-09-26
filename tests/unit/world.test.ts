@@ -98,23 +98,23 @@ describe("ramps", () => {
     }
   });
 
-  it("a character can walk up a ramp but not up a cliff", () => {
+  it("a character can walk up a ramp and scramble up a cliff", () => {
     const w = generateWorld(12345);
     const r = w.ramps.find((q) => q.fromLevel === 1)!;
     const body = makeBody(1.3, 0.35);
     body.pos.set(r.ax - r.dx * 1.5, heightAt(w.heightmap, r.ax, r.az), r.az - r.dz * 1.5);
     for (let i = 0; i < 240; i++) stepBody(body, r.dx * 4.8, r.dz * 4.8, 1 / 60, w);
-    expect(body.pos.y).toBeCloseTo(LEVEL_HEIGHTS[1], 1);
+    expect(body.pos.y).toBeGreaterThan(LEVEL_HEIGHTS[1] - 0.2);
 
-    // Beside the ramp, walking the same direction must stop at the cliff foot.
+    // Beside the ramp the whole island is walkable too: walking at the cliff climbs it.
     const side = 9;
     const sx = r.ax - r.dx * 1.5 - r.dz * side;
     const sz = r.az - r.dz * 1.5 + r.dx * side;
-    if (levelAt(w.heightmap, sx, sz) === 1) {
+    if (levelAt(w.heightmap, sx, sz) === 1 && levelAt(w.heightmap, sx + r.dx * 12, sz + r.dz * 12) === 2) {
       const b2 = makeBody(1.3, 0.35);
       b2.pos.set(sx, heightAt(w.heightmap, sx, sz), sz);
-      for (let i = 0; i < 240; i++) stepBody(b2, r.dx * 4.8, r.dz * 4.8, 1 / 60, w);
-      expect(b2.pos.y).toBeLessThan(LEVEL_HEIGHTS[1] - 0.5);
+      for (let i = 0; i < 60 * 8; i++) stepBody(b2, r.dx * 4.8, r.dz * 4.8, 1 / 60, w);
+      expect(b2.pos.y).toBeGreaterThan(LEVEL_HEIGHTS[1] - 0.2);
     }
   });
 

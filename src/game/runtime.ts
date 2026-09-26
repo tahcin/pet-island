@@ -98,3 +98,15 @@ export interface CollectibleRuntime {
 
 export const villagers: VillagerRuntime[] = [];
 export const collectibles: CollectibleRuntime[] = [];
+
+/** Journal "Guide me" target. The quest system keeps x and z on moving targets and clears it when the step completes. */
+export interface Waypoint {
+  x: number;
+  z: number;
+  label: string;
+  /** Quest (villager index) being guided. */
+  quest: number;
+}
+
+/** Active waypoint for the 3D marker, screen arrow, and minimap: read `waypoint.current`. */
+export const waypoint: { current: Waypoint | null } = { current: null };

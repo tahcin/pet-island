@@ -3,13 +3,16 @@ import type { WorldData } from "../world/generateWorld";
 import { heightAt } from "../world/generateWorld";
 import Collectibles from "./CollectibleItems";
 import Villagers from "./Villagers";
-import { collectibles, runtime, villagers, type CollectibleRuntime, type VillagerRuntime } from "./runtime";
+import { collectibles, runtime, villagers, waypoint, type CollectibleRuntime, type VillagerRuntime, type Waypoint } from "./runtime";
+import GuideMarker from "../town/GuideMarker";
 import { controlledBody, resetTalk } from "./interactions";
 
 export interface PlayDevHook {
   teleport: (x: number, z: number) => void;
   collectibles: CollectibleRuntime[];
   villagers: VillagerRuntime[];
+  /** The journal's active waypoint, or null. */
+  readonly waypoint: Waypoint | null;
 }
 
 declare global {
@@ -32,6 +35,9 @@ export default function PlayExtras({ world }: { world: WorldData }) {
       },
       collectibles,
       villagers,
+      get waypoint() {
+        return waypoint.current;
+      },
     };
     return () => {
       delete window.__pi;
@@ -42,6 +48,7 @@ export default function PlayExtras({ world }: { world: WorldData }) {
     <>
       <Collectibles world={world} />
       <Villagers world={world} />
+      <GuideMarker world={world} />
     </>
   );
 }

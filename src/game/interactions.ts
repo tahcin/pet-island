@@ -1,10 +1,37 @@
 import { create } from "zustand";
-import { collectibles, runtime, villagers, type Body, type CollectibleRuntime } from "./runtime";
+import { collectibles, runtime, villagers, waypoint, type Body, type CollectibleRuntime } from "./runtime";
 import { emit } from "./events";
 import { petControl } from "./petControl";
 import { useGame } from "../store";
 import { itemName } from "./collectibles";
-import { canTurnIn, questFor } from "./quests";
+import { askText, canTurnIn, deliveryTo, questDefs, visitDone, type QuestContext, type QuestDef } from "./quests";
+import { townPeople, type Person } from "../town/people";
+import { levelAt, type WorldData } from "../world/generateWorld";
+
+/** The island the quest system runs on (set by the villager system). */
+export const questWorld: { current: WorldData | null } = { current: null };
+
+export function people(): Person[] {
+  const g = useGame.getState();
+  return townPeople(g.reading, g.seed);
+}
+
+export function currentDefs(): QuestDef[] {
+  const g = useGame.getState();
+  return questDefs(g.reading.spec.species, questWorld.current?.town.lookout.level ?? 3);
+}
+
+export function questContext(giver: number): QuestContext {
+  const g = useGame.getState();
+  const v = villagers[giver];
+  const b = controlledBody();
+  const hm = questWorld.current?.heightmap;
+  return {
+    inventory: g.inventory,
+    petToGiver: v ? Math.hypot(runtime.pet.pos.x - v.body.pos.x, runtime.pet.pos.z - v.body.pos.z) : Infinity,
+    playerLevel: hm ? levelAt(hm, b.pos.x, b.pos.z) : 0,
+  };
+}
 
 export const TALK_RANGE = 3;
 export const PICK_RANGE = 1.5;
@@ -13,6 +40,7 @@ const BUBBLE_SECONDS = 6;
 
 export type Target =
   | { type: "quest"; villager: number }
+  | { type: "deliver"; villager: number; from: number }
   | { type: "talk"; villager: number }
   | { type: "collect"; index: number };
 
@@ -83,8 +111,12 @@ export function findTarget(): Target | null {
     if (d < TALK_RANGE + v.body.radius && (!best || d < best.d)) best = { i: v.index, d };
   }
   if (best) {
-    const def = questFor(best.i, g.reading.spec.species);
-    if (def && canTurnIn(g.quests[best.i], g.inventory[def.kind], def)) return { type: "quest", villager: best.i };
+    const bi = best.i;
+    const defs = currentDefs();
+    const letter = deliveryTo(bi, g.quests, defs);
+    if (letter) return { type: "deliver", villager: bi, from: letter.villager };
+    const def = defs.find((d) => d.villager === bi);
+    if (def && canTurnIn(g.quests[bi], def, questContext(bi))) return { type: "quest", villager: bi };
     return { type: "talk", villager: best.i };
   }
   let near: { i: number; d: number } | null = null;
@@ -103,9 +135,12 @@ export function hintFor(t: Target | null): string | null {
   if (t.type === "collect") return `Space: pick up ${itemName(collectibles[t.index].kind)}`;
   const v = villagers[t.villager];
   if (!v) return null;
+  if (t.type === "deliver") return `Space: give ${v.name} the letter`;
   if (t.type === "quest") {
-    const def = questFor(t.villager, g.reading.spec.species);
-    return def ? `Space: give ${def.count} ${itemName(def.kind, def.count)}` : null;
+    const def = currentDefs().find((d) => d.villager === t.villager);
+    if (!def) return null;
+    if (def.type === "fetch") return `Space: give ${def.count} ${itemName(def.kind, def.count)}`;
+    return `Space: show ${g.reading.nameSuggestions[0]} to ${v.name}`;
   }
   return `Space: talk to ${v.name}`;
 }
@@ -150,35 +185,56 @@ export function collectItem(index: number): void {
 
 function talkTo(i: number): void {
   const g = useGame.getState();
-  const reading = g.reading.villagers[i];
-  if (!reading) return;
-  const def = questFor(i, g.reading.spec.species);
+  const person = people()[i];
+  if (!person) return;
+  const def = currentDefs().find((d) => d.villager === i);
   if (def && g.quests[i] === "notStarted") {
     g.setQuest(i, "active");
-    say(i, reading.questAsk);
-    g.logEvent(`${reading.name} asked for ${def.count} ${itemName(def.kind, def.count)}.`);
+    const names = people().map((p) => p.name);
+    const petName = g.reading.nameSuggestions[0];
+    say(i, def.type === "fetch" && person.questAsk ? person.questAsk : askText(def, names, petName));
+    g.logEvent(`${person.name} asked for help: ${askText(def, names, petName)}`);
     return;
   }
   const t = talkState(i);
-  const line = reading.lines[t.next % reading.lines.length];
+  const line = person.lines[t.next % person.lines.length];
   t.next++;
   say(i, line);
 }
 
-function turnIn(i: number): void {
+/** Pays out a finished quest: bells, hearts, accessory, thanks, and events. */
+export function completeQuest(i: number, speaker = i): void {
   const g = useGame.getState();
-  const reading = g.reading.villagers[i];
-  const def = questFor(i, g.reading.spec.species);
-  if (!reading || !def) return;
+  const person = people()[i];
+  const def = currentDefs().find((d) => d.villager === i);
+  if (!person || !def || g.quests[i] !== "active") return;
   const petName = g.reading.nameSuggestions[0];
-  g.spend(def.kind, def.count);
+  if (def.type === "fetch") g.spend(def.kind, def.count);
   g.setQuest(i, "done");
-  g.equip(def.reward);
-  say(i, reading.questThanks);
-  emit("questDone", { index: i, villager: reading.name });
-  g.rememberVillager(reading.name, `${petName}'s person brought me ${def.count} ${itemName(def.kind, def.count)}.`);
-  g.logEvent(`The person gave ${reading.name} ${def.count} ${itemName(def.kind, def.count)}.`);
+  if (def.reward.accessory) g.equip(def.reward.accessory);
+  g.addBells(def.reward.bells);
+  g.addFriendship(i, def.reward.hearts);
+  if (speaker !== i) g.addFriendship(speaker, 1);
+  const thanks = def.type === "fetch" && person.questThanks ? person.questThanks : "Thank you so much! You are a true friend.";
+  say(speaker, speaker === i ? thanks : `A letter from ${person.name}? How lovely, thank you!`);
+  emit("questDone", { index: i, villager: person.name });
+  g.rememberVillager(person.name, `${petName}'s person helped me out.`);
+  g.logEvent(`The person finished a favor for ${person.name}.`);
   petControl.brain?.celebrate();
+}
+
+function turnIn(i: number): void {
+  completeQuest(i);
+}
+
+/** Visit quests finish on arrival and a finished quest drops its waypoint; call a few times a second. */
+export function tickQuests(): void {
+  const g = useGame.getState();
+  for (const def of currentDefs()) {
+    if (visitDone(g.quests[def.villager], def, questContext(def.villager))) completeQuest(def.villager);
+  }
+  const w = waypoint.current;
+  if (w && g.quests[w.quest] === "done") waypoint.current = null;
 }
 
 /** Runs the Space interaction; returns false when nothing was in range. */
@@ -186,6 +242,7 @@ export function interact(): boolean {
   const t = findTarget();
   if (!t) return false;
   if (t.type === "quest") turnIn(t.villager);
+  else if (t.type === "deliver") completeQuest(t.from, t.villager);
   else if (t.type === "talk") talkTo(t.villager);
   else collectItem(t.index);
   return true;
