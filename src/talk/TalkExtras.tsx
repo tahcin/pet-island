@@ -90,7 +90,9 @@ export default function TalkExtras({ world }: { world: WorldData }) {
       window.setTimeout(() => greetOnReturn(news, duration), 900);
     }
     const stopSave = startAutosave();
-    const offQuest = on("questDone", ({ villager }) => {
+    const offQuest = on("questDone", ({ index, villager }) => {
+      // Only villager 0 holds the shell quest; the others already remember a generic thank-you.
+      if (index !== 0) return;
       const g = useGame.getState();
       g.rememberVillager(villager, `${g.reading.nameSuggestions[0]}'s person brought me 3 shells.`);
     });

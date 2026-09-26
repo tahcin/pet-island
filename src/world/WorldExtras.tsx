@@ -6,6 +6,7 @@ import { buildCollide, propColliders } from "./collision";
 import { createHouses, houseColliders } from "./house";
 import Props from "./Props";
 import Town, { townColliders } from "../town/Town";
+import FxLayer from "../fx/FxLayer";
 
 function Houses({ world }: { world: WorldData }) {
   // Seeded cottage variants (roof shapes, colors, greenery), instanced: at most 12 draw calls.
@@ -40,6 +41,7 @@ export default function WorldExtras({ world }: { world: WorldData }) {
       <Props world={world} />
       <Houses world={world} />
       <Town world={world} />
+      <FxLayer world={world} />
     </group>
   );
 }

@@ -12,8 +12,34 @@ test.describe("juice", () => {
     const before = await seed.textContent();
     await page.locator("body").click({ position: { x: 640, y: 420 } });
     await page.keyboard.press("KeyN");
-    await expect(seed).not.toHaveText(before ?? "", { timeout: 1000 });
+    // Software WebGL (swiftshader) runs a few frames a second; a real GPU swaps well inside a second.
+    await expect(seed).not.toHaveText(before ?? "", { timeout: 5000 });
     await expect(page.getByTestId("toast")).toContainText("Welcome to a new island");
+  });
+
+  test("pause menu: keys wait, resume leaves the island, new island needs a confirm", async ({ page }) => {
+    const seed = page.getByTestId("seed");
+    const before = (await seed.textContent()) ?? "";
+    // The first Esc dismisses the welcome card; the next one pauses.
+    await expect(page.getByTestId("welcome-card")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("welcome-card")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("pause-menu")).toBeVisible();
+    // N and P pressed while paused must not fire once the game resumes.
+    await page.keyboard.press("KeyN");
+    await page.keyboard.press("KeyP");
+    await page.getByTestId("resume").click();
+    await expect(page.getByTestId("pause-menu")).toBeHidden();
+    await page.waitForTimeout(3000);
+    await expect(seed).toHaveText(before);
+    await expect(page.locator("body")).not.toHaveClass(/photo-mode/);
+
+    await page.getByTestId("menu-button").click();
+    await page.getByTestId("pause-new-island").click();
+    await page.getByTestId("pause-new-island-confirm").click();
+    await expect(seed).not.toHaveText(before, { timeout: 15_000 });
+    await expect(page.getByTestId("pause-menu")).toBeHidden();
   });
 
   test("P downloads a named PNG and hides the HUD", async ({ page }) => {

@@ -3,11 +3,12 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGame } from "../store";
 import { DAY_SECONDS, dayClock, dayLookAt, isShot } from "../juice/dayCycle";
+import { gfx } from "../fx/quality";
 
 const SUN_OFFSET = new THREE.Vector3(28, 55, 22);
 const SUN_DISTANCE = SUN_OFFSET.length();
 const SHADOW_RADIUS = 30;
-const SHADOW_MAP = 4096;
+const SHADOW_MAP = gfx.shadowMapSize;
 /** How often the live clock is mirrored into the store (for saves), in seconds. */
 const STORE_SYNC = 2;
 

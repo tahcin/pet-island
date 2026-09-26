@@ -421,3 +421,29 @@
   .pg-pill { right: 16px; bottom: 150px; }
   .pg-notice { white-space: normal; }
 }
+
+/* Phones: cards and the passport fit the screen and scroll inside. */
+@media (max-width: 600px), (max-height: 500px) {
+  .pg-welcome,
+  .pg-passport {
+    width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 24px) !important;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  .pg-pill {
+    transform: scale(0.9);
+    transform-origin: left bottom;
+  }
+}
+
+@media (max-height: 500px) {
+  .pg-welcome {
+    width: min(460px, calc(100vw - 24px)) !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+  .pg-celebrate {
+    top: 30% !important;
+  }
+}

@@ -78,6 +78,8 @@ function PhotoAndKeys() {
   const finish = () => {
     st.current.phase = "idle";
     input.suspended = false;
+    // Keys tapped during the countdown (N for a new island) must not fire after the shot.
+    input.pressed.clear();
     setBodyPhoto(false);
     useGame.getState().setPhotoMode(false);
     useJuice.getState().setCountdown(null);

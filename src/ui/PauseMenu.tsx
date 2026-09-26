@@ -15,6 +15,8 @@ function pressKey(code: string, key: string): void {
 
 /** Opens and closes the pause menu from anywhere (the HUD menu button uses this). */
 export const pauseMenu = {
+  /** True while the pause menu is up; other key handlers stay out of the way. */
+  isOpen: false,
   open: () => window.dispatchEvent(new CustomEvent("pi:pause", { detail: true })),
   close: () => window.dispatchEvent(new CustomEvent("pi:pause", { detail: false })),
 };
@@ -44,6 +46,9 @@ export default function PauseMenu() {
       input.suspended = false;
       setConfirmNew(false);
     }
+    // Taps made while paused (N, P, Tab) must not fire the moment play resumes.
+    input.pressed.clear();
+    pauseMenu.isOpen = next;
     setOpen(next);
   };
 
@@ -68,6 +73,7 @@ export default function PauseMenu() {
   // Never leave input suspended if the island unmounts while paused.
   useEffect(() => () => {
     input.suspended = false;
+    pauseMenu.isOpen = false;
   }, []);
 
   if (!open) return null;

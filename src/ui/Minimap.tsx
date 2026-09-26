@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGame } from "../store";
+import { pauseMenu } from "./PauseMenu";
 import type { WorldData } from "../world/generateWorld";
 import { HALF, WORLD_SIZE, heightAt, levelOfHeight } from "../world/heightmap";
 import { collectibles, runtime, villagers, waypoint } from "../game/runtime";
@@ -293,6 +294,7 @@ export default function Minimap({ world }: { world: WorldData }) {
       const t = e.target;
       if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) return;
       if (t instanceof HTMLElement && t.isContentEditable) return;
+      if (pauseMenu.isOpen) return;
       if (e.code === "KeyM" && !e.repeat) setExpanded((x) => !x);
       else if (e.code === "Escape") setExpanded(false);
     };

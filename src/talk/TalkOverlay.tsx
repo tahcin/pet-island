@@ -3,6 +3,7 @@ import { useGame } from "../store";
 import { input } from "../control/useInput";
 import { useTalk } from "./talkState";
 import { sayToPet } from "./petMind";
+import { pauseMenu } from "../ui/PauseMenu";
 import "./talk.css";
 
 const CHIPS = ["Who are you?", "Follow me", "Wait here", "Show me a trick", "Let's play", "Find something!"];
@@ -22,6 +23,8 @@ export default function TalkOverlay() {
       const t = e.target as HTMLElement | null;
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;
       if (useTalk.getState().open) return;
+      // Paused: T and Enter must not open the chat bar behind the menu (Enter still presses its buttons).
+      if (pauseMenu.isOpen) return;
       const g = useGame.getState();
       if (g.mode !== "companion" || g.photoMode || g.screen !== "play") return;
       if (e.code === "KeyT" || e.code === "Enter") {
@@ -38,9 +41,9 @@ export default function TalkOverlay() {
       input.suspended = true;
       input.down.clear();
       field.current?.focus();
-    } else input.suspended = false;
+    } else if (!pauseMenu.isOpen) input.suspended = false;
     return () => {
-      input.suspended = false;
+      if (!pauseMenu.isOpen) input.suspended = false;
     };
   }, [open]);
 

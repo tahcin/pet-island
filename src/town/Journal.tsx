@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useGame } from "../store";
+import { pauseMenu } from "../ui/PauseMenu";
 import { villagers } from "../game/runtime";
 import {
   controlledBody,
@@ -143,6 +144,7 @@ export default function Journal() {
           el.isContentEditable)
       )
         return;
+      if (pauseMenu.isOpen) return;
       if (e.code === "KeyJ" || e.code === "KeyQ") setOpen((o) => !o);
       else if (e.code === "Escape") setOpen(false);
     };

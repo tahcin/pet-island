@@ -131,3 +131,31 @@
   font-size: 17px;
   color: #4a3728;
 }
+
+/* Phones: full-width bar pinned above the keyboard, chips scroll sideways. */
+@media (max-width: 600px), (max-height: 500px) {
+  .talk-bar {
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    transform: none !important;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+  .talk-chips {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+  .talk-chips::-webkit-scrollbar {
+    display: none;
+  }
+  .talk-chip {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .talk-input {
+    font-size: 16px; /* 16 px stops iOS from zooming on focus */
+  }
+}

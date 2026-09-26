@@ -258,3 +258,27 @@ body.photo-mode .minimap,
 body.photo-mode .minimap-root {
   display: none;
 }
+
+/* Phones: a smaller compact map in the top right; tap to expand. */
+@media (max-width: 600px) {
+  .minimap-compact {
+    top: calc(56px + env(safe-area-inset-top)) !important;
+    left: auto !important;
+    right: 12px !important;
+    width: 110px !important;
+    height: 110px !important;
+  }
+}
+
+@media (max-height: 500px) {
+  .minimap-compact {
+    top: calc(8px + env(safe-area-inset-top)) !important;
+    left: auto !important;
+    right: calc(12px + env(safe-area-inset-right)) !important;
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .minimap-expanded .minimap-frame {
+    width: min(calc(100vh - 110px), 60vw) !important;
+  }
+}

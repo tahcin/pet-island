@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useGame } from "../store";
+import { pauseMenu } from "../ui/PauseMenu";
 import { on } from "../game/events";
 import { runtime, villagers } from "../game/runtime";
 import { useJuice } from "../juice/juiceState";
@@ -96,12 +97,17 @@ export default function ProgressRoot({ world }: { world: WorldData }) {
     const onKey = (e: KeyboardEvent) => {
       const el = document.activeElement;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || (el as HTMLElement).isContentEditable)) return;
+      if (pauseMenu.isOpen) return;
       if (e.code === "KeyK" || e.code === "KeyB") {
         p().setOpen(!p().open);
       } else if (e.code === "Escape" && p().open) {
         // Close the passport first so the pause menu does not also open.
         e.stopImmediatePropagation();
         p().setOpen(false);
+      } else if (e.code === "Escape" && p().welcome && !document.querySelector(".jn-panel, .minimap-backdrop, .talk-bar")) {
+        // Esc dismisses the welcome card; otherwise the pause menu defers to it and Esc does nothing.
+        e.stopImmediatePropagation();
+        p().dismissWelcome();
       }
     };
     window.addEventListener("keydown", onKey, true);

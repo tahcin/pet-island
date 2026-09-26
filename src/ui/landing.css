@@ -1030,3 +1030,10 @@
     transition-duration: 1ms !important;
   }
 }
+
+/* Touch phones: there is nothing to drag and drop, and the page should not rubber-band. */
+@media (pointer: coarse) {
+  .lp-drop-hint {
+    display: none;
+  }
+}

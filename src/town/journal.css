@@ -204,3 +204,25 @@
   font-size: 13px;
   box-shadow: 0 3px 0 rgba(91, 70, 54, 0.12);
 }
+
+/* Phones: the journal becomes a bottom sheet. */
+@media (max-width: 600px), (max-height: 500px) {
+  .jn-panel {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: calc(8px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-height: 72vh !important;
+    overflow-y: auto;
+    border-radius: 20px !important;
+    z-index: 45 !important;
+  }
+}
+
+@media (max-height: 500px) {
+  .jn-panel {
+    left: 25% !important;
+    right: 25% !important;
+    max-height: calc(100vh - 16px) !important;
+  }
+}

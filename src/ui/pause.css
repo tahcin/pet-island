@@ -125,3 +125,25 @@
 }
 
 body.photo-mode .pause-backdrop { display: none; }
+
+/* Phones: the menu card fits and scrolls; keyboard controls are hidden on touch. */
+@media (max-width: 600px), (max-height: 500px) {
+  .pause-card {
+    width: calc(100vw - 24px) !important;
+    max-width: 440px;
+    max-height: calc(100vh - 24px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 18px !important;
+  }
+  .pause-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .pause-controls,
+  .pause-key {
+    display: none !important;
+  }
+}

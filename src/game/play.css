@@ -247,3 +247,42 @@
   height: 0;
   will-change: transform;
 }
+
+/* Phones: counters top right, quest tracker under the mode pill, compact type. */
+@media (max-width: 600px) {
+  .pi-pills {
+    top: calc(10px + env(safe-area-inset-top)) !important;
+    right: 12px !important;
+    gap: 6px !important;
+    transform: scale(0.86);
+    transform-origin: right top;
+  }
+  .pi-quests {
+    top: calc(112px + env(safe-area-inset-top)) !important;
+    left: 12px !important;
+    right: auto !important;
+    max-width: calc(100vw - 150px) !important;
+    font-size: 13px;
+  }
+  .pi-hint {
+    font-size: 14px;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (max-height: 500px) {
+  .pi-pills {
+    top: calc(8px + env(safe-area-inset-top)) !important;
+    right: calc(120px + env(safe-area-inset-right)) !important;
+    transform: scale(0.86);
+    transform-origin: right top;
+  }
+  .pi-quests {
+    top: calc(60px + env(safe-area-inset-top)) !important;
+    left: calc(12px + env(safe-area-inset-left)) !important;
+    right: auto !important;
+    max-width: 240px !important;
+    font-size: 12px;
+  }
+}

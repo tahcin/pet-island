@@ -1,3 +1,4 @@
+import { IS_MOBILE } from "../mobile/device";
 import { useMemo, useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
@@ -32,6 +33,7 @@ import Minimap from "./Minimap";
 import PauseMenu from "./PauseMenu";
 import Journal from "../town/Journal";
 import ProgressRoot from "../progress/ProgressRoot";
+import TouchControls from "../mobile/TouchControls";
 
 /** Mounted last: drops key presses no system consumed this frame so they never fire late. */
 function InputFlush() {
@@ -89,7 +91,8 @@ export default function Play() {
       <Canvas
         flat
         shadows={{ type: THREE.PCFShadowMap }}
-        dpr={[1, 1.5]}
+        dpr={IS_MOBILE ? [1, 1.25] : [1, 1.5]}
+        performance={{ min: 0.6 }}
         camera={{ fov: 42, near: 0.2, far: 600 }}
         gl={{ antialias: true, preserveDrawingBuffer: shot !== null }}
       >
@@ -128,6 +131,7 @@ export default function Play() {
           <PauseMenu />
           <Journal />
           <ProgressRoot world={world} />
+          <TouchControls />
         </>
       )}
     </div>
