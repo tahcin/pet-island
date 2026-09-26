@@ -8,7 +8,7 @@ import { createServer } from "vite";
 import { chromium, type Page } from "@playwright/test";
 
 const SEED = 12345;
-const PORT = 5175;
+const PORT = Number(process.env.SHOT_PORT ?? 5175);
 const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7);
 
 async function waitFor(page: Page, expr: string, timeout = 90_000): Promise<void> {

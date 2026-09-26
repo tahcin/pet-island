@@ -71,3 +71,30 @@ export function resetBody(b: Body, x: number, y: number, z: number, yaw: number)
   b.moving = false;
   b.running = false;
 }
+
+/** Live villager state (written by the villager system, read by perception, chats, and save). */
+export interface VillagerRuntime {
+  index: number;
+  name: string;
+  species: string;
+  body: Body;
+  home: { x: number; z: number };
+  /** Speech bubble text, shown while set. */
+  say: string | null;
+  /** When set, the villager walks here and holds (overheard chats set this). */
+  goto: { x: number; z: number } | null;
+  /** When set, the villager turns to face this point. */
+  face: { x: number; z: number } | null;
+}
+
+/** Live collectible state (written by the collectible system, read by perception and save). */
+export interface CollectibleRuntime {
+  id: string;
+  kind: "bone" | "yarn" | "carrot" | "shell";
+  x: number;
+  z: number;
+  taken: boolean;
+}
+
+export const villagers: VillagerRuntime[] = [];
+export const collectibles: CollectibleRuntime[] = [];

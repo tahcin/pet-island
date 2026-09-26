@@ -1,4 +1,6 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { emit } from "../game/events";
+import { setAccessory } from "./buildPet";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import Pet from "./Pet";
@@ -31,11 +33,22 @@ export default function IslandPet({ world }: { world: WorldData }) {
       new PetBrain(Math.random, {
         glyph: showGlyph,
         hop: (s) => animator.current?.hop(s),
-        dug: (x, z) => spawnPuff(x, heightAt(world.heightmap, x, z), z),
+        dug: (x, z) => {
+          spawnPuff(x, heightAt(world.heightmap, x, z), z);
+          emit("dug", { x, z });
+        },
       }),
     [world],
   );
   petControl.brain = brain;
+  // Quest rewards: the newest earned accessory is worn (hat beats bandana).
+  const equipped = useGame((s) => s.equipped);
+  const [group, setGroup] = useState<THREE.Group | null>(null);
+  useEffect(() => {
+    if (!group) return;
+    const wear = equipped.includes("hat") ? "hat" : equipped.includes("bandana") ? "bandana" : spec.accessory;
+    setAccessory(group, wear, spec);
+  }, [group, equipped, spec]);
 
   useFrame((_, rawDt) => {
     const dt = Math.min(rawDt, 0.05);
@@ -87,8 +100,9 @@ export default function IslandPet({ world }: { world: WorldData }) {
           animator.current = an;
           petControl.animator = an;
         }}
-        onBuilt={(group) => {
-          const d = petData(group);
+        onBuilt={(built) => {
+          setGroup(built);
+          const d = petData(built);
           runtime.pet.height = d.height;
           runtime.pet.radius = d.radius;
         }}

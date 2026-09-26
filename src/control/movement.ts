@@ -11,6 +11,9 @@ const STEP_DOWN = 0.6;
 /** Circle obstacle test hook; returns a pushed-out position or null. Filled in by props (M4). */
 export type Collide = (x: number, z: number, r: number, feetY: number) => { x: number; z: number } | null;
 
+/** Scenery collider registered by the props system (M4); used by every stepBody call. */
+export const collision: { fn: Collide | null } = { fn: null };
+
 export function dampAngle(from: number, to: number, rate: number, dt: number): number {
   let d = to - from;
   d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -51,8 +54,9 @@ export function stepBody(
       body.vel.z = 0;
     }
   }
-  if (collide) {
-    const pushed = collide(nx, nz, body.radius, p.y);
+  const col = collide ?? collision.fn;
+  if (col) {
+    const pushed = col(nx, nz, body.radius, p.y);
     if (pushed && canWalk(world, p.x, p.z, pushed.x, pushed.z)) {
       nx = pushed.x;
       nz = pushed.z;

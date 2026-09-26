@@ -19,7 +19,21 @@ import IslandPet from "../pet/IslandPet";
 import { PET_BASE_SPEED } from "../pet/petBrain";
 import { WALK_SPEED } from "../control/movement";
 import Hud from "./Hud";
+import { input } from "../control/useInput";
+import WorldExtras from "../world/WorldExtras";
+import PlayExtras from "../game/PlayExtras";
+import PlayOverlay from "../game/PlayOverlay";
+import TalkExtras from "../talk/TalkExtras";
+import TalkOverlay from "../talk/TalkOverlay";
+import JuiceExtras from "../juice/JuiceExtras";
+import JuiceOverlay from "../juice/JuiceOverlay";
 import { applyShot, readShot } from "./shots";
+
+/** Mounted last: drops key presses no system consumed this frame so they never fire late. */
+function InputFlush() {
+  useFrame(() => input.pressed.clear());
+  return null;
+}
 
 function Clock() {
   useFrame((_, dt) => {
@@ -90,12 +104,24 @@ export default function Play() {
         <IslandPet world={world} />
         <Avatar world={world} />
         <Puffs />
+        <WorldExtras world={world} />
+        <PlayExtras world={world} />
+        <TalkExtras world={world} />
+        <JuiceExtras world={world} />
         <ModeKeys world={world} enabled={shot === null} />
         <FollowCamera world={world} getBody={controlled} getPet={petBody} />
         <Clock />
         <ReadyFlag world={world} />
+        <InputFlush />
       </Canvas>
-      {shot === null && <Hud />}
+      {shot === null && (
+        <>
+          <Hud />
+          <PlayOverlay />
+          <TalkOverlay />
+          <JuiceOverlay />
+        </>
+      )}
     </div>
   );
 }

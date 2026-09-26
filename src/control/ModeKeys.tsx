@@ -53,8 +53,6 @@ export default function ModeKeys({ world, enabled = true }: { world: WorldData; 
         if (kind === "sniff") showGlyph("?");
       }
     }
-    // Keys with no meaning yet should not queue up for later.
-    input.pressed.clear();
   });
   return null;
 }
