@@ -36,7 +36,7 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## Checkpoint A: the look
 
-- [ ] Island screenshots in `screenshots/` and dog, cat, rabbit turntable screenshots in `screenshots/pets/`
+- [x] Island screenshots in `screenshots/` and dog, cat, rabbit turntable screenshots in `screenshots/pets/`
 - [ ] Stop, show them to the human with the dev server command, ask: "Does this look like Animal Crossing, and do the pets look cute rather than like programmer art?"
 - [ ] Apply feedback, commit "checkpoint A feedback"
 
