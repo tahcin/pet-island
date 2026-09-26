@@ -1,0 +1,32 @@
+import type { Archetype } from "./types";
+
+/** Rabbit: round body, short muzzle pads, buck teeth, big haunches, puff tail. */
+export const rabbit: Archetype = {
+  id: "rabbit",
+  bodyRadius: 0.25,
+  bodyLength: 0.06,
+  bodyScaleY: 0.96,
+  legVisible: 0.05,
+  legRadius: 0.075,
+  haunches: true,
+  headRadius: 0.3,
+  headScale: [1.02, 0.98, 0.98],
+  headLift: 0.8,
+  headForward: 0.14,
+  headTilt: 0.04,
+  muzzle: "pads",
+  muzzleSize: 0.2,
+  muzzleLength: 0.9,
+  noseSize: 0.08,
+  noseDefaultPink: true,
+  whiskers: false,
+  irisRing: false,
+  teeth: true,
+  tongue: false,
+  eyeSize: 0.21,
+  eyeAzimuth: 0.5,
+  eyeElevation: 0.05,
+  earScale: 1,
+  defaultEar: "long_upright",
+  defaultTail: "puff",
+};

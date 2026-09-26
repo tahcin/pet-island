@@ -1,0 +1,180 @@
+/*
+ * One bottom-right row, right to left: [menu][photo] buttons, the Journal pill, then the
+ * progress pill. Every piece is 52 px tall, shares one baseline, uses the same corner radius,
+ * and sits 10 px from its neighbour. Fixed widths on the right-hand pieces keep the gaps exact.
+ */
+.hud-buttons {
+  bottom: 44px !important;
+  right: 16px !important;
+  gap: 10px !important;
+  align-items: stretch;
+}
+
+.hud-buttons .hud-btn {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 18px !important;
+}
+
+.hud-dock {
+  bottom: 44px !important;
+  right: 140px !important; /* 16 + 2 x 52 + 10 + 10 */
+  height: 52px;
+  align-items: stretch !important;
+}
+
+.hud-dock .jn-button {
+  box-sizing: border-box;
+  width: 132px;
+  height: 52px !important;
+  padding: 0 14px !important;
+  justify-content: center;
+  border-radius: 18px !important;
+  font-size: 16px;
+}
+
+.pg-pill {
+  box-sizing: border-box;
+  bottom: 44px !important;
+  right: 282px !important; /* 140 + 132 + 10 */
+  height: 52px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-radius: 18px !important;
+  align-items: center;
+}
+
+.hud-hints {
+  max-width: calc(100% - 700px) !important;
+}
+
+@media (max-width: 1150px) {
+  .hud-hints {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .hud-dock {
+    right: 16px !important;
+    bottom: 106px !important;
+  }
+  .pg-pill {
+    right: 16px !important;
+    bottom: 168px !important;
+  }
+}
+
+/*
+ * Phones (PRD F23). On touch the bottom corners belong to the joystick and the action
+ * buttons, so the HUD buttons stack above the action cluster and the progress pill sits
+ * above the joystick. Keyboard hints, key badges, and the seed line are hidden.
+ */
+html.is-touch .hud-hints,
+html.is-touch .hud-btn-key,
+html.is-touch .hud-dock .jn-button kbd,
+html.is-touch .pg-pill kbd,
+html.is-touch .hud-seed {
+  display: none !important;
+}
+
+@media (max-width: 600px) {
+  .hud-card {
+    top: calc(10px + env(safe-area-inset-top)) !important;
+    left: 12px !important;
+    max-width: calc(100vw - 190px);
+    padding: 8px 12px !important;
+  }
+  .hud-name {
+    font-size: 18px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hud-traits .hud-trait:nth-child(n + 2) {
+    display: none;
+  }
+  .hud-mode {
+    top: calc(76px + env(safe-area-inset-top)) !important;
+    left: 12px !important;
+    transform: none !important;
+    font-size: 12px !important;
+    padding: 5px 10px !important;
+    white-space: nowrap;
+  }
+}
+
+html.is-touch .hud-buttons {
+  bottom: calc(236px + env(safe-area-inset-bottom)) !important;
+  right: calc(12px + env(safe-area-inset-right)) !important;
+  gap: 8px !important;
+}
+
+html.is-touch .hud-buttons .hud-btn {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 16px !important;
+}
+
+html.is-touch .hud-dock {
+  bottom: calc(182px + env(safe-area-inset-bottom)) !important;
+  right: calc(12px + env(safe-area-inset-right)) !important;
+  height: 46px;
+}
+
+html.is-touch .hud-dock .jn-button {
+  width: 100px;
+  height: 46px !important;
+  font-size: 15px;
+  border-radius: 16px !important;
+}
+
+html.is-touch .pg-pill {
+  left: calc(12px + env(safe-area-inset-left)) !important;
+  right: auto !important;
+  bottom: calc(182px + env(safe-area-inset-bottom)) !important;
+  height: 46px !important;
+  border-radius: 16px !important;
+  transform-origin: left bottom;
+}
+
+html.is-touch .pi-hint {
+  bottom: calc(300px + env(safe-area-inset-bottom)) !important;
+  max-width: calc(100vw - 32px);
+}
+
+/* Landscape phones: one short row between the joystick and the action cluster. */
+@media (max-height: 500px) {
+  .hud-card {
+    top: calc(8px + env(safe-area-inset-top)) !important;
+    left: calc(12px + env(safe-area-inset-left)) !important;
+    padding: 6px 12px !important;
+  }
+  .hud-name {
+    font-size: 17px !important;
+  }
+  .hud-traits {
+    display: none !important;
+  }
+  .hud-mode {
+    top: calc(8px + env(safe-area-inset-top)) !important;
+    font-size: 12px !important;
+    padding: 5px 12px !important;
+  }
+  html.is-touch .hud-buttons {
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    right: calc(196px + env(safe-area-inset-right)) !important;
+  }
+  html.is-touch .hud-dock {
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+    right: calc(304px + env(safe-area-inset-right)) !important;
+  }
+  html.is-touch .pg-pill {
+    left: auto !important;
+    right: calc(412px + env(safe-area-inset-right)) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  html.is-touch .pi-hint {
+    bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  }
+}

@@ -1,0 +1,32 @@
+import type { Archetype } from "./types";
+
+/** Dog: longer muzzle, round head, floppy ears by default. */
+export const dog: Archetype = {
+  id: "dog",
+  bodyRadius: 0.22,
+  bodyLength: 0.2,
+  bodyScaleY: 0.95,
+  legVisible: 0.1,
+  legRadius: 0.07,
+  haunches: false,
+  headRadius: 0.31,
+  headScale: [1.06, 0.96, 0.96],
+  headLift: 0.78,
+  headForward: 0.2,
+  headTilt: 0.06,
+  muzzle: "long",
+  muzzleSize: 0.4,
+  muzzleLength: 1.05,
+  noseSize: 0.14,
+  noseDefaultPink: false,
+  whiskers: false,
+  irisRing: false,
+  teeth: false,
+  tongue: true,
+  eyeSize: 0.2,
+  eyeAzimuth: 0.46,
+  eyeElevation: 0.08,
+  earScale: 1,
+  defaultEar: "floppy",
+  defaultTail: "curly",
+};

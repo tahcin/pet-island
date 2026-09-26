@@ -1,0 +1,148 @@
+/* PRD F23 touch controls: translucent cream, large hit areas, safe-area aware. */
+html.is-touch,
+html.is-touch body {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.is-touch [data-testid="play"] {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.tc-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+  font-family: "Fredoka", "Nunito", system-ui, sans-serif;
+}
+
+.tc-stick {
+  position: absolute;
+  left: calc(18px + env(safe-area-inset-left));
+  bottom: calc(26px + env(safe-area-inset-bottom));
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 248, 234, 0.28) 0%, rgba(255, 248, 234, 0.5) 100%);
+  border: 3px solid rgba(255, 248, 234, 0.85);
+  box-shadow: 0 6px 18px rgba(91, 70, 54, 0.18);
+  pointer-events: auto;
+  touch-action: none;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s;
+}
+
+.tc-stick.active {
+  background: radial-gradient(circle, rgba(255, 248, 234, 0.4) 0%, rgba(255, 248, 234, 0.66) 100%);
+}
+
+.tc-knob {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #fff8ea;
+  border: 3px solid #e9d9bd;
+  box-shadow: 0 4px 10px rgba(91, 70, 54, 0.25);
+  will-change: transform;
+}
+
+.tc-stick.running .tc-knob {
+  background: #ffe7b8;
+  border-color: #f0b85c;
+}
+
+.tc-actions {
+  position: absolute;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(22px + env(safe-area-inset-bottom));
+  width: 170px;
+  height: 150px;
+  pointer-events: none;
+}
+
+.tc-btn {
+  position: absolute;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 248, 234, 0.82);
+  color: #5b4636;
+  box-shadow: 0 5px 14px rgba(91, 70, 54, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 0;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  font: 600 10px/1 "Fredoka", "Nunito", system-ui, sans-serif;
+  transition: transform 0.08s, background 0.08s;
+}
+
+.tc-btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 231, 184, 0.95);
+}
+
+.tc-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tc-btn.big {
+  width: 80px;
+  height: 80px;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 238, 205, 0.9);
+  font-size: 12px;
+}
+
+.tc-btn.big svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* The two small buttons sit on an arc around the big one. */
+.tc-btn:nth-child(2) {
+  right: 92px;
+  bottom: 4px;
+}
+
+.tc-btn:nth-child(3) {
+  right: 20px;
+  bottom: 90px;
+}
+
+.tc-label {
+  pointer-events: none;
+}
+
+.tc-root.hidden {
+  display: none;
+}
+
+@media (max-height: 500px) {
+  .tc-stick {
+    width: 116px;
+    height: 116px;
+    left: calc(16px + env(safe-area-inset-left));
+    bottom: calc(14px + env(safe-area-inset-bottom));
+  }
+  .tc-knob {
+    width: 52px;
+    height: 52px;
+  }
+  .tc-actions {
+    bottom: calc(10px + env(safe-area-inset-bottom));
+  }
+}
