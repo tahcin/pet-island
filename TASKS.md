@@ -6,33 +6,33 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## M0 Walkable island
 
-- [ ] Vite + React 19 + R3F 9 + drei 10 + three 0.186 + zustand + TypeScript strict scaffold, `npm run dev` renders a canvas
-- [ ] Hono server scaffold with `/api/health`, Vite proxy for `/api`
-- [ ] `src/world/heightmap.ts`: seeded fBm, island mask, beach band, three terraces, `heightAt`, `levelAt`, `isWater`
-- [ ] `src/world/river.ts`: one river polyline carved into the heightmap
-- [ ] Ramps between terrace levels (two per boundary)
-- [ ] `Terrain.tsx`: flat-shaded, vertex-colored mesh from the heightmap
-- [ ] `Water.tsx`: translucent plane at sea level
-- [ ] `render/toon.ts`: gradient map and MeshToonMaterial factory
-- [ ] `render/bend.ts`: curved world patch with shared uniform, custom depth material, `frustumCulled = false`
-- [ ] Lights, sky, fog per PRD section 8, `flat` tone mapping
-- [ ] Capsule placeholder with WASD, Shift run, heightmap grounding, water and cliff blocking
-- [ ] Damped follow camera with mouse orbit and scroll zoom
-- [ ] `scripts/screenshot.ts` writes three PNGs at seed 12345
-- [ ] Unit tests: heightmap determinism, no NaN heights, ramps connect levels
-- [ ] Screenshot reviewed against PRD section 8, commit "M0 walkable island"
+- [x] Vite + React 19 + R3F 9 + drei 10 + three 0.186 + zustand + TypeScript strict scaffold, `npm run dev` renders a canvas
+- [x] Hono server scaffold with `/api/health`, Vite proxy for `/api`
+- [x] `src/world/heightmap.ts`: seeded fBm, island mask, beach band, three terraces, `heightAt`, `levelAt`, `isWater`
+- [x] `src/world/river.ts`: one river polyline carved into the heightmap
+- [x] Ramps between terrace levels (two per boundary)
+- [x] `Terrain.tsx`: flat-shaded, vertex-colored mesh from the heightmap
+- [x] `Water.tsx`: translucent plane at sea level
+- [x] `render/toon.ts`: gradient map and MeshToonMaterial factory
+- [x] `render/bend.ts`: curved world patch with shared uniform, custom depth material, `frustumCulled = false`
+- [x] Lights, sky, fog per PRD section 8, `flat` tone mapping
+- [x] Capsule placeholder with WASD, Shift run, heightmap grounding, water and cliff blocking
+- [x] Damped follow camera with mouse orbit and scroll zoom
+- [x] `scripts/screenshot.ts` writes three PNGs at seed 12345
+- [x] Unit tests: heightmap determinism, no NaN heights, ramps connect levels
+- [x] Screenshot reviewed against PRD section 8, commit "M0 walkable island"
 
 ## M1 Pet builder
 
-- [ ] `schema/petReading.ts` with the zod schemas from PRD 6.3
-- [ ] `pet/buildPet.ts` returns a group with all named pivots for dog, cat, rabbit
-- [ ] Ear variants (6) and tail variants (6) implemented
-- [ ] Build, size, fur length affect proportions
-- [ ] `pet/markingTexture.ts` with all nine patterns, cached by spec hash
-- [ ] `pet/petAnimator.ts`: idle, walk, run, sit, dig, sniff, happy with 0.2 s blends
-- [ ] Reveal turntable screen with name, traits, island name, "Let's go"
-- [ ] Unit tests: every enum combination builds, pivots exist, textures deterministic
-- [ ] Screenshot of dog, cat, rabbit reviewed for the AC look, commit "M1 pet builder"
+- [x] `schema/petReading.ts` with the zod schemas from PRD 6.3
+- [x] `pet/buildPet.ts` returns a group with all named pivots for dog, cat, rabbit
+- [x] Ear variants (6) and tail variants (6) implemented
+- [x] Build, size, fur length affect proportions
+- [x] `pet/markingTexture.ts` with all nine patterns, cached by spec hash
+- [x] `pet/petAnimator.ts`: idle, walk, run, sit, dig, sniff, happy with 0.2 s blends
+- [x] Reveal turntable screen with name, traits, island name, "Let's go"
+- [x] Unit tests: every enum combination builds, pivots exist, textures deterministic
+- [x] Screenshot of dog, cat, rabbit reviewed for the AC look, commit "M1 pet builder"
 
 ## Checkpoint A: the look
 

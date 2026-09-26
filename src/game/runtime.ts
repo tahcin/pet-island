@@ -1,0 +1,60 @@
+import * as THREE from "three";
+
+/**
+ * Per-frame game state that must never live in React state. Components read and write
+ * these objects inside useFrame.
+ */
+export interface Body {
+  pos: THREE.Vector3;
+  vel: THREE.Vector3;
+  yaw: number;
+  /** Vertical velocity for gravity. */
+  vy: number;
+  /** Horizontal speed in m/s after damping, used by animators. */
+  speed: number;
+  /** True when the last frame had movement input. */
+  moving: boolean;
+  running: boolean;
+  height: number;
+  radius: number;
+}
+
+export function makeBody(height: number, radius: number): Body {
+  return {
+    pos: new THREE.Vector3(),
+    vel: new THREE.Vector3(),
+    yaw: 0,
+    vy: 0,
+    speed: 0,
+    moving: false,
+    running: false,
+    height,
+    radius,
+  };
+}
+
+export interface CameraRig {
+  yaw: number;
+  pitch: number;
+  zoom: number;
+  /** Set to snap the camera to its target on the next frame. */
+  snap: boolean;
+}
+
+export const runtime = {
+  avatar: makeBody(1.3, 0.35),
+  pet: makeBody(0.7, 0.35),
+  camera: { yaw: 0, pitch: 0.62, zoom: 1.35, snap: true } as CameraRig,
+  /** Seconds since the controlled character last had movement input. */
+  idleTime: 0,
+};
+
+export function resetBody(b: Body, x: number, y: number, z: number, yaw: number): void {
+  b.pos.set(x, y, z);
+  b.vel.set(0, 0, 0);
+  b.vy = 0;
+  b.yaw = yaw;
+  b.speed = 0;
+  b.moving = false;
+  b.running = false;
+}

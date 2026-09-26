@@ -1,0 +1,32 @@
+import type { Archetype } from "./types";
+
+/** Cat: wide head, short muzzle pads, iris ring in the eye colour, whiskers. */
+export const cat: Archetype = {
+  id: "cat",
+  bodyRadius: 0.2,
+  bodyLength: 0.22,
+  bodyScaleY: 0.92,
+  legVisible: 0.1,
+  legRadius: 0.06,
+  haunches: false,
+  headRadius: 0.31,
+  headScale: [1.14, 0.93, 0.95],
+  headLift: 0.78,
+  headForward: 0.16,
+  headTilt: 0.04,
+  muzzle: "pads",
+  muzzleSize: 0.2,
+  muzzleLength: 0.9,
+  noseSize: 0.085,
+  noseDefaultPink: true,
+  whiskers: true,
+  irisRing: true,
+  teeth: false,
+  tongue: false,
+  eyeSize: 0.21,
+  eyeAzimuth: 0.47,
+  eyeElevation: 0.06,
+  earScale: 1,
+  defaultEar: "pointy",
+  defaultTail: "long",
+};
