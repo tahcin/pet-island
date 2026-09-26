@@ -1,7 +1,7 @@
 /**
  * Deterministic visual review: starts Vite, opens the island at seed 12345 from three fixed
  * camera angles, and saves PNGs to ./screenshots. Also saves pet turntables to
- * ./screenshots/pets. Usage: npm run screenshot [-- --only=island|pets]
+ * ./screenshots/pets. Usage: npm run screenshot [-- --only=island|pets|ui]
  */
 import { mkdirSync } from "node:fs";
 import { createServer } from "vite";
@@ -25,7 +25,7 @@ async function main(): Promise<void> {
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
     page.on("pageerror", (e) => console.error("page error:", e.message));
-    if (only !== "pets") {
+    if (!only || only === "island") {
       for (const shot of [0, 1, 2]) {
         await page.goto(`http://localhost:${PORT}/?shot=${shot}#seed=${SEED}`);
         await waitFor(page, `window.__worldReady === ${SEED}`);
@@ -35,7 +35,14 @@ async function main(): Promise<void> {
         console.log("wrote", file);
       }
     }
-    if (only !== "island") {
+    if (!only || only === "ui") {
+      await page.goto(`http://localhost:${PORT}/`);
+      await page.getByTestId("landing").waitFor();
+      await page.waitForTimeout(2500);
+      await page.screenshot({ path: "screenshots/landing.png" });
+      console.log("wrote screenshots/landing.png");
+    }
+    if (!only || only === "pets") {
       for (const species of ["dog", "cat", "rabbit"]) {
         await page.goto(`http://localhost:${PORT}/?reveal=${species}`);
         await waitFor(page, "window.__petReady === true");

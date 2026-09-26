@@ -4,9 +4,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n web,api \"vite\" \"tsx watch server/index.ts\"",
+    "dev": "concurrently -k -n web,api \"npm:web\" \"npm:server\"",
     "web": "vite",
-    "server": "tsx watch server/index.ts",
+    "server": "node --watch --import tsx server/index.ts",
     "start": "tsx server/index.ts",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",

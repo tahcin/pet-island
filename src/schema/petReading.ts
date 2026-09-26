@@ -106,6 +106,28 @@ export const PetReadingWireSchema = z.object({
 });
 export type PetReadingWire = z.infer<typeof PetReadingWireSchema>;
 
+/**
+ * The reading is fetched as two parallel calls so the reveal never waits on the long part:
+ * the core (what the reveal shows) and the details (mind and villagers, used on the island).
+ */
+export const PetCoreWireSchema = PetReadingWireSchema.pick({
+  spec: true,
+  nameSuggestions: true,
+  personality: true,
+  greeting: true,
+  islandName: true,
+});
+export const PetDetailsWireSchema = PetReadingWireSchema.pick({ mind: true, villagers: true });
+export type PetCoreWire = z.infer<typeof PetCoreWireSchema>;
+export type PetDetailsWire = z.infer<typeof PetDetailsWireSchema>;
+export type PetDetails = Pick<PetReading, "mind" | "villagers">;
+
+/** Normalizes the details half on its own (pads villagers, truncates strings). */
+export function normalizeDetails(raw: unknown): PetDetails {
+  const r = normalizeReading(raw);
+  return { mind: r.mind, villagers: r.villagers };
+}
+
 export const PetTalkSchema = z.object({
   say: z.string(),
   act: z.enum(PET_ACTS),
@@ -271,14 +293,19 @@ function fixedList(input: unknown, n: number, max: number, fallback: readonly st
 export function normalizeSpec(raw: unknown, base: PetSpec = DEFAULT_READING.spec): PetSpec {
   const s = (raw ?? {}) as Record<string, unknown>;
   const collar = (s.collar ?? {}) as Record<string, unknown>;
-  const baseColor = liftColor(normalizeHex(s.baseColor, base.baseColor));
+  let baseColor = liftColor(normalizeHex(s.baseColor, base.baseColor));
+  let secondaryColor = liftColor(normalizeHex(s.secondaryColor, baseColor));
+  // Tuxedo paints chest, belly, and paws in the secondary color, which must be the light one.
+  if (s.markingPattern === "tuxedo" && luminance(secondaryColor) < luminance(baseColor)) {
+    [baseColor, secondaryColor] = [secondaryColor, baseColor];
+  }
   return {
     species: pickEnum(s.species, SPECIES, base.species),
     build: pickEnum(s.build, BUILDS, base.build),
     size: pickEnum(s.size, SIZES, base.size),
     furLength: pickEnum(s.furLength, FUR_LENGTHS, base.furLength),
     baseColor,
-    secondaryColor: liftColor(normalizeHex(s.secondaryColor, baseColor)),
+    secondaryColor,
     markingPattern: pickEnum(s.markingPattern, MARKING_PATTERNS, base.markingPattern),
     markingCoverage: clamp01(s.markingCoverage, base.markingCoverage),
     earType: pickEnum(s.earType, EAR_TYPES, base.earType),

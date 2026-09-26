@@ -287,6 +287,7 @@ function Ground() {
 
 export default function Reveal() {
   const reading = useGame((s) => s.reading);
+  const fallbackMessage = useGame((s) => s.fallbackMessage);
   const [ready, setReady] = useState(false);
   const [sound, setSound] = useState(false);
   const spec = reading.spec;
@@ -371,10 +372,11 @@ export default function Reveal() {
         <p className="reveal-island">
           Welcome to <strong>{reading.islandName}</strong>
         </p>
-        <button className="btn reveal-go" onClick={() => useGame.getState().setScreen("play")}>
+        <button className="btn reveal-go" data-testid="lets-go" onClick={() => useGame.getState().setScreen("play")}>
           Let's go
         </button>
-        {confidence < 0.5 && (
+        {fallbackMessage && <p className="reveal-confidence">{fallbackMessage}</p>}
+        {!fallbackMessage && confidence < 0.5 && (
           <p className="reveal-confidence">
             Claude is {Math.round(confidence * 100)}% sure about this one. A clearer photo helps.
           </p>

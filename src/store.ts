@@ -25,6 +25,12 @@ interface GameState {
   fallbackMessage: string | null;
   seed: number;
   mode: Mode;
+  /** Preview of the uploaded photo (a data URL). Never saved. */
+  photoUrl: string | null;
+  /** True once the mind and villagers have arrived (or fallen back). */
+  detailsReady: boolean;
+  setPhoto: (url: string | null) => void;
+  setDetails: (details: Pick<PetReading, "mind" | "villagers">) => void;
   setScreen: (screen: Screen) => void;
   setReading: (reading: PetReading, fallback?: boolean, message?: string | null) => void;
   setSeed: (seed: number) => void;
@@ -39,6 +45,10 @@ export const useGame = create<GameState>()((set) => ({
   fallbackMessage: null,
   seed: seedFromLocation() ?? DEFAULT_SEED,
   mode: "companion",
+  photoUrl: null,
+  detailsReady: false,
+  setPhoto: (photoUrl) => set({ photoUrl }),
+  setDetails: (details) => set((s) => ({ reading: { ...s.reading, ...details }, detailsReady: true })),
   setScreen: (screen) => set({ screen }),
   setReading: (reading, fallback = false, message = null) =>
     set({ reading, fallback, fallbackMessage: message }),

@@ -37,19 +37,19 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 ## Checkpoint A: the look
 
 - [x] Island screenshots in `screenshots/` and dog, cat, rabbit turntable screenshots in `screenshots/pets/`
-- [ ] Stop, show them to the human with the dev server command, ask: "Does this look like Animal Crossing, and do the pets look cute rather than like programmer art?"
-- [ ] Apply feedback, commit "checkpoint A feedback"
+- [x] Stop, show them to the human with the dev server command, ask: "Does this look like Animal Crossing, and do the pets look cute rather than like programmer art?"
+- [x] Apply feedback, commit "checkpoint A feedback" (approved as is: "looks great", no changes)
 
 ## M2 Claude reading
 
-- [ ] `server/petReading.ts`: `messages.parse` with structured output, refusal and parse fallback, 20 s timeout, 413 on oversized images
-- [ ] `POST /api/pet` route
-- [ ] Landing screen with drag and drop upload, client-side resize to 1024 px JPEG
-- [ ] Reading screen with placeholder pet wiggle
-- [ ] Store wiring: reading, seed, screen router
-- [ ] Server unit tests with a mocked SDK: refusal, timeout, bad JSON, oversized image
-- [ ] Real photo test: every photo in `test-photos/` produces a sensible spec in under 10 s, and the bad image produces the fallback pet
-- [ ] Commit "M2 claude reading"
+- [x] `server/petReading.ts`: `messages.parse` with structured output, refusal and parse fallback, 20 s timeout, 413 on oversized images
+- [x] `POST /api/pet` route
+- [x] Landing screen with drag and drop upload, client-side resize to 1024 px JPEG
+- [x] Reading screen with placeholder pet wiggle
+- [x] Store wiring: reading, seed, screen router
+- [x] Server unit tests with a mocked SDK: refusal, timeout, bad JSON, oversized image
+- [x] Real photo test: every photo in `test-photos/` produces a sensible spec in under 10 s, and the bad image produces the fallback pet
+- [x] Commit "M2 claude reading"
 
 ## M3 Two modes
 

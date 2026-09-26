@@ -37,6 +37,11 @@ function hex(value: string | null): string | undefined {
 export function applyDevRoute(): void {
   if (typeof window === "undefined") return;
   const q = new URLSearchParams(window.location.search);
+  // `?shot=N` (screenshots) and `?play` jump straight onto the island with the default pet.
+  if (q.has("shot") || q.has("play")) {
+    useGame.getState().setScreen("play");
+    return;
+  }
   const which = q.get("reveal");
   if (!which || !isSampleSpecies(which)) return;
   const reading = sampleReading(which);
