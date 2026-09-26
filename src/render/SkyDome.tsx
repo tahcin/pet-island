@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { dayClock } from "../juice/dayCycle";
 
 export const SKY_COLOR = "#cfeaff";
 export const SKY_TOP = "#8ccbf5";
@@ -33,12 +34,19 @@ const skyMaterial = new THREE.ShaderMaterial({
 });
 
 const skyGeometry = new THREE.SphereGeometry(450, 32, 16);
+const uTop = skyMaterial.uniforms.uTop.value as THREE.Color;
+const uHorizon = skyMaterial.uniforms.uHorizon.value as THREE.Color;
 
-/** Two-color gradient sky that follows the camera (PRD section 8: no HDRI). */
+/**
+ * Two-color gradient sky that follows the camera (PRD section 8: no HDRI). Its colors track
+ * the day clock, which Lights advances earlier in the same frame.
+ */
 export default function SkyDome() {
   const ref = useRef<THREE.Mesh>(null);
   useFrame(({ camera }) => {
     ref.current?.position.copy(camera.position);
+    uTop.copy(dayClock.look.skyTop);
+    uHorizon.copy(dayClock.look.horizon);
   });
   return (
     <mesh ref={ref} geometry={skyGeometry} material={skyMaterial} renderOrder={-10} frustumCulled={false} />

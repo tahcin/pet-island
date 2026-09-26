@@ -88,6 +88,9 @@ export function useInput(target: React.RefObject<HTMLElement | null>): void {
     const el = target.current;
     const onPointerDown = (e: PointerEvent) => {
       if (e.button !== 0 && e.button !== 2) return;
+      // Clicks on HUD controls must reach them; only drags that start on the scene orbit the camera.
+      const t = e.target as HTMLElement | null;
+      if (t?.closest("button, a, input, textarea, select, label, [data-no-orbit]")) return;
       input.dragging = true;
       el?.setPointerCapture(e.pointerId);
     };

@@ -107,12 +107,12 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## M7 Juice
 
-- [ ] Photo mode: P hides HUD, countdown, PNG download with pet name
-- [ ] N reseeds the island in under 1 s and resets collectibles and quests
-- [ ] Ambient sea and bird loops, muted by default
-- [ ] Day and night cycle with pause toggle
-- [ ] Small rodent archetype
-- [ ] Commit "M7 juice"
+- [x] Photo mode: P hides HUD, countdown, PNG download with pet name
+- [x] N reseeds the island in under 1 s and resets collectibles and quests
+- [x] Ambient sea and bird loops, muted by default
+- [x] Day and night cycle with pause toggle
+- [x] Small rodent archetype
+- [x] Commit "M7 juice"
 
 ## Cut list (apply in order if the human says to wrap up)
 
