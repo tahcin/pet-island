@@ -81,13 +81,13 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## M5 Play
 
-- [ ] Collectible primitives: bone, yarn, carrot, shell
-- [ ] Collectibles placed by species and beach, collected by proximity or Space, HUD tween
-- [ ] Pet digs reveal a collectible 30 percent of the time
-- [ ] Villagers from the reading, seeded random bodies, wander, face player, speech bubbles
-- [ ] Two fetch quests with bandana and hat rewards, quest tracker in HUD
-- [ ] Playwright: collect an item, talk to a villager
-- [ ] Commit "M5 play"
+- [x] Collectible primitives: bone, yarn, carrot, shell
+- [x] Collectibles placed by species and beach, collected by proximity or Space, HUD tween
+- [x] Pet digs reveal a collectible 30 percent of the time
+- [x] Villagers from the reading, seeded random bodies, wander, face player, speech bubbles
+- [x] Two fetch quests with bandana and hat rewards, quest tracker in HUD
+- [x] Playwright: collect an item, talk to a villager
+- [x] Commit "M5 play"
 
 ## M6 Living island
 

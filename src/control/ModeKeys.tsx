@@ -5,6 +5,8 @@ import { petControl } from "../game/petControl";
 import { spawnPuff, showGlyph } from "../game/Effects";
 import { PET_ACTION_SECONDS } from "../pet/IslandPet";
 import { useGame } from "../store";
+import { interact } from "../game/interactions";
+import { emit } from "../game/events";
 import { heightAt, type WorldData } from "../world/generateWorld";
 
 let savedPitch = 0.62;
@@ -39,8 +41,9 @@ export default function ModeKeys({ world, enabled = true }: { world: WorldData; 
     }
     if (consumePress("Space")) {
       const pet = runtime.pet;
-      if (game.mode === "companion") {
-        // Quest, villager, and collectible interactions come first (M5); then play with the pet.
+      if (interact()) {
+        // Quest turn-in, villager talk, or pickup handled it (PRD 9.7).
+      } else if (game.mode === "companion") {
         const d = Math.hypot(pet.pos.x - runtime.avatar.pos.x, pet.pos.z - runtime.avatar.pos.z);
         if (d < 2) petControl.brain?.startPlay();
       } else if (!pet.moving) {
@@ -51,6 +54,7 @@ export default function ModeKeys({ world, enabled = true }: { world: WorldData; 
         const fz = pet.pos.z + Math.cos(pet.yaw) * (pet.radius + 0.1);
         spawnPuff(fx, heightAt(world.heightmap, fx, fz), fz);
         if (kind === "sniff") showGlyph("?");
+        else window.setTimeout(() => emit("dug", { x: fx, z: fz }), PET_ACTION_SECONDS.dig * 800);
       }
     }
   });
