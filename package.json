@@ -8,11 +8,12 @@
     "web": "vite",
     "server": "node --watch --import tsx server/index.ts",
     "start": "tsx server/index.ts",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && npm run build:api",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "e2e": "playwright test",
-    "screenshot": "tsx scripts/screenshot.ts"
+    "screenshot": "tsx scripts/screenshot.ts",
+    "build:api": "esbuild server/vercel.ts --bundle --platform=node --format=esm --target=node22 --outfile=api/index.js --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

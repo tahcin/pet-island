@@ -92,3 +92,22 @@ describe("quest steps", () => {
     expect(deliveryTo(0, ["notStarted", "notStarted", "notStarted", "done", "notStarted", "notStarted"], defs)).toBeNull();
   });
 });
+
+describe("cottage pads", () => {
+  it("every cottage stands on level, dry ground", async () => {
+    const { generateWorld } = await import("../../src/world/generateWorld");
+    const { heightAt, isWater } = await import("../../src/world/heightmap");
+    for (const seed of [12345, 1, 777, 424242, 99, 8, 31337, 5, 2024]) {
+      const w = generateWorld(seed);
+      for (const h of w.homes) {
+        const hs: number[] = [];
+        for (let a = 0; a < 12; a++) {
+          const ang = (a / 12) * Math.PI * 2;
+          for (const r of [0, 1.1, 2.1]) hs.push(heightAt(w.heightmap, h.x + Math.cos(ang) * r, h.z + Math.sin(ang) * r));
+        }
+        expect(Math.max(...hs) - Math.min(...hs)).toBeLessThan(0.15);
+        expect(isWater(w.heightmap, h.x, h.z)).toBe(false);
+      }
+    }
+  });
+});

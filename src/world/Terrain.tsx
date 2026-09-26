@@ -23,6 +23,8 @@ export default function Terrain({ world }: { world: WorldData }) {
       if (world.river.distance[k] < RIVER_CLEARANCE + 1.5) return true;
       const x = gridX(k % RES);
       const z = gridZ(Math.floor(k / RES));
+      // The leveled town ground blends smoothly; do not snap its slopes into cliff steps.
+      if (Math.hypot(x - world.town.x, z - world.town.z) < world.town.radius + 6) return true;
       return world.ramps.some((r) => {
         const { along, lateral } = rampLocal(r, x, z);
         return along > -0.3 && along < 1.3 && lateral < r.halfWidth + 1.6;

@@ -151,3 +151,39 @@ export function slopeAt(hm: Heightmap, x: number, z: number): number {
   const dz = (heightAt(hm, x, z + s) - heightAt(hm, x, z - s)) / (2 * s);
   return Math.sqrt(dx * dx + dz * dz);
 }
+
+/** Snaps a height to the nearest terrace (or the beach lip) so building pads sit on a level. */
+export function snapToTerrace(h: number): number {
+  const levels = [0.35, ...LEVEL_HEIGHTS];
+  let best = h;
+  let bestD = 1.3;
+  for (const l of levels) {
+    const d = Math.abs(h - l);
+    if (d < bestD) {
+      bestD = d;
+      best = l;
+    }
+  }
+  return best;
+}
+
+/**
+ * Terraforms a flat round pad (radius r) at height `target`, blending back to the original
+ * terrain over `blend` meters, like leveling ground before building. Mutates hm.heights.
+ */
+export function flattenPad(hm: Heightmap, x: number, z: number, r: number, blend: number, target: number): void {
+  const reach = r + blend;
+  const i0 = Math.max(0, Math.floor((x - reach + HALF) / CELL));
+  const i1 = Math.min(RES - 1, Math.ceil((x + reach + HALF) / CELL));
+  const j0 = Math.max(0, Math.floor((z - reach + HALF) / CELL));
+  const j1 = Math.min(RES - 1, Math.ceil((z + reach + HALF) / CELL));
+  for (let j = j0; j <= j1; j++) {
+    for (let i = i0; i <= i1; i++) {
+      const d = Math.hypot(gridX(i) - x, gridZ(j) - z);
+      if (d >= reach) continue;
+      const w = 1 - smoothstep(r, reach, d);
+      const k = j * RES + i;
+      hm.heights[k] = lerp(hm.heights[k], target, w);
+    }
+  }
+}

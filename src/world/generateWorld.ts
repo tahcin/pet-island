@@ -14,6 +14,10 @@ import { carveRiver, riverDistanceAt, type River } from "./river";
 import { buildRamps, type Ramp } from "./ramps";
 import { placeProps, propInterest, type PropInstance } from "./placement";
 import { findTown, type Town } from "./town";
+import { flattenPad, snapToTerrace } from "./heightmap";
+
+/** Radius of the leveled ground under each cottage (its collider is 2.1 m). */
+export const HOUSE_PAD_RADIUS = 3.2;
 
 export type { PropInstance, PropType } from "./placement";
 export type { Town, TownHome } from "./town";
@@ -101,6 +105,12 @@ export function generateWorld(seed: number): WorldData {
   const interest = findInterest(heightmap, river, kit.rng, 90);
   const town = findTown(heightmap, river, ramps, spawn, seed);
   const homes = town.homes;
+  // Level the plaza and a pad under every cottage so no house hangs off a slope or cliff.
+  flattenPad(heightmap, town.x, town.z, town.plaza + 0.5, 2.5, town.y);
+  for (const h of homes) {
+    const target = snapToTerrace(heightAt(heightmap, h.x, h.z));
+    flattenPad(heightmap, h.x, h.z, HOUSE_PAD_RADIUS, 2.4, Math.max(0.35, target));
+  }
   const props = placeProps({ seed, heightmap, river, ramps, spawn, homes, town });
   interest.push(...propInterest(props, 60));
   return { seed, heightmap, river, ramps, spawn, petSpawn, interest, homes, props, town };
