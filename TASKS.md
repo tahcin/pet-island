@@ -69,15 +69,15 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## M4 Props and polish
 
-- [ ] Kenney Nature Kit GLBs in `public/models`, primitive fallbacks for every prop type
-- [ ] `world/placement.ts`: Poisson placement filtered by level, slope, water, river, homes
-- [ ] `Props.tsx`: one InstancedMesh per prop type, toon materials keeping the atlas
-- [ ] Circle collisions against a spatial hash of trees and rocks
-- [ ] Wind sway uniform on foliage materials
-- [ ] HUD: name, traits, counter, hints, mode, seed
-- [ ] Draw calls under 150, 60 fps at 1.5 dpr on the dev laptop
-- [ ] Unit tests: no placement in water, river, or on steep slopes
-- [ ] Screenshot passes the "is this Animal Crossing?" check, commit "M4 props and polish"
+- [x] Kenney Nature Kit GLBs in `public/models`, primitive fallbacks for every prop type (fallback taken: all props are code-built primitives, rounder than Kenney's low-poly and instanced without GLB splitting)
+- [x] `world/placement.ts`: Poisson placement filtered by level, slope, water, river, homes
+- [x] `Props.tsx`: one InstancedMesh per prop type, toon materials keeping the atlas
+- [x] Circle collisions against a spatial hash of trees and rocks
+- [x] Wind sway uniform on foliage materials
+- [x] HUD: name, traits, counter, hints, mode, seed
+- [x] Draw calls under 150, 60 fps at 1.5 dpr on the dev laptop
+- [x] Unit tests: no placement in water, river, or on steep slopes
+- [x] Screenshot passes the "is this Animal Crossing?" check, commit "M4 props and polish"
 
 ## M5 Play
 

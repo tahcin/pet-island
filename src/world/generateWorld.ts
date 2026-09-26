@@ -12,6 +12,9 @@ import {
 } from "./heightmap";
 import { carveRiver, riverDistanceAt, type River } from "./river";
 import { buildRamps, isOnRamp, type Ramp } from "./ramps";
+import { findHomes, placeProps, propInterest, type PropInstance } from "./placement";
+
+export type { PropInstance, PropType } from "./placement";
 
 export interface Spawn {
   x: number;
@@ -29,6 +32,10 @@ export interface WorldData {
   petSpawn: Spawn;
   /** Seeded spots the pet likes to sniff (props add more in M4). */
   interest: { x: number; z: number }[];
+  /** Three villager home spots on level 1 (PRD 7.2 step 10). */
+  homes: { x: number; z: number }[];
+  /** Placed scenery (PRD 7.2 step 9), rendered instanced by Props.tsx. */
+  props: PropInstance[];
 }
 
 /** Seeded dry, flat, non-river points for the pet to sniff at. */
@@ -88,7 +95,10 @@ export function generateWorld(seed: number): WorldData {
     petSpawn = { x: spawn.x + Math.cos(spawn.yaw) * 1.5, z: spawn.z - Math.sin(spawn.yaw) * 1.5, yaw: spawn.yaw };
   }
   const interest = findInterest(heightmap, river, kit.rng, 90);
-  return { seed, heightmap, river, ramps, spawn, petSpawn, interest };
+  const homes = findHomes(heightmap, river, ramps, spawn, seed);
+  const props = placeProps({ seed, heightmap, river, ramps, spawn, homes });
+  interest.push(...propInterest(props, 60));
+  return { seed, heightmap, river, ramps, spawn, petSpawn, interest, homes, props };
 }
 
 export const MAX_WALK_SLOPE = 1.0;
