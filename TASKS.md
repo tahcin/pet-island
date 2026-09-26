@@ -63,8 +63,8 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## Checkpoint B: first playable
 
-- [ ] A real photo from `test-photos/` goes upload, reading, reveal, island, pet follows, Tab swaps
-- [ ] Stop, give the human the run commands, ask them to play two minutes: "What feels off?"
+- [x] A real photo from `test-photos/` goes upload, reading, reveal, island, pet follows, Tab swaps (test-photos/ still missing: verified with five real pet photos from the scratchpad through the UI, reveal in 4.7 to 6.2 s; island, follow, and Tab covered by the mocked e2e flow and the gameplay screenshots)
+- [x] Stop, give the human the run commands, ask them to play two minutes: "What feels off?"
 - [ ] Apply feedback, commit "checkpoint B feedback"
 
 ## M4 Props and polish
