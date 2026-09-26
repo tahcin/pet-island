@@ -1,10 +1,51 @@
 import type { Body } from "../game/runtime";
 import type { PetAnimState } from "./petAnimator";
+import type { PetAct, PetMood } from "../schema/petReading";
 
 /** Mood glyphs shown above the pet for 2.2 s when its mood changes (PRD 9.2). */
 export type Glyph = "heart" | "!" | "?" | "note" | "z" | "star";
 
-export type BrainState = "follow" | "idle" | "sit" | "sniff" | "dig" | "play" | "happy";
+export type BrainState =
+  | "follow"
+  | "idle"
+  | "sit"
+  | "sniff"
+  | "dig"
+  | "play"
+  | "happy"
+  | "stay"
+  | "come"
+  | "trick"
+  | "sleep"
+  | "go_to";
+
+/** How long each talk act lasts before the pet goes back to following (PRD 9.9 Acting). */
+export const ACT_SECONDS: Record<PetAct, number> = {
+  follow: 120,
+  come: 25,
+  stay: 40,
+  sit: 40,
+  play: 12,
+  sniff: 15,
+  dig: 6,
+  trick: 3,
+  sleep: 60,
+  go_to: 30,
+};
+
+/** Mood glyphs for talk replies (PRD 9.2 glyph set). */
+export const MOOD_GLYPH: Record<PetMood, Glyph> = {
+  happy: "heart",
+  curious: "?",
+  excited: "!",
+  calm: "note",
+  sleepy: "z",
+  playful: "note",
+  shy: "?",
+  proud: "star",
+  loving: "heart",
+  grumpy: "!",
+};
 
 export interface BrainInput {
   pet: Body;
@@ -23,6 +64,8 @@ export interface BrainOutput {
   move: number;
   /** Look at the player's head (true) or glance on its own (false). */
   lookAtPlayer: boolean;
+  /** Extra yaw in radians on top of the body's facing (the trick spin). */
+  spin: number;
 }
 
 export interface BrainEvents {
@@ -64,6 +107,11 @@ export class PetBrain {
   /** Seconds spent at the sniff spot. */
   private dwell = 0;
   private visited: { x: number; z: number }[] = [];
+  /** A talk act in progress: seconds left, after which the pet follows again. */
+  plan: { act: PetAct; left: number } | null = null;
+  private mood: PetMood | null = null;
+  private zIn = 0;
+  private trickHops = 0;
 
   constructor(
     private rng: () => number = Math.random,
@@ -95,8 +143,63 @@ export class PetBrain {
     this.hopsLeft = 2;
   }
 
+  /**
+   * Starts a talk act (PRD 9.9). `target` is where go_to walks and where sniff looks,
+   * already resolved from the perception list by the caller.
+   */
+  act(act: PetAct, target: { x: number; z: number } | null = null): void {
+    const dur = ACT_SECONDS[act];
+    this.plan = { act, left: dur };
+    switch (act) {
+      case "follow":
+        this.enter("follow");
+        break;
+      case "sit":
+        this.enter("sit");
+        break;
+      case "stay":
+        this.enter("stay");
+        break;
+      case "come":
+        this.enter("come");
+        break;
+      case "play":
+        this.startPlay();
+        break;
+      case "sniff":
+        this.enter("sniff");
+        this.target = target;
+        break;
+      case "dig":
+        this.enter("dig");
+        this.target = null;
+        break;
+      case "trick":
+        this.enter("trick");
+        this.trickHops = 2;
+        this.events.glyph?.("star");
+        break;
+      case "sleep":
+        this.enter("sleep");
+        this.zIn = 0;
+        break;
+      case "go_to":
+        this.enter("go_to");
+        this.target = target;
+        break;
+    }
+  }
+
+  /** Shows the mood glyph when the mood changes. */
+  setMood(mood: PetMood): void {
+    if (mood === this.mood) return;
+    this.mood = mood;
+    this.events.glyph?.(MOOD_GLYPH[mood]);
+  }
+
   /** Resets to following, for example after the player hands control back with Tab. */
   reset(): void {
+    this.plan = null;
     this.enter("follow");
     this.blockedFor = 0;
     this.restFor = 0;
@@ -113,7 +216,15 @@ export class PetBrain {
     const playerMoving = player.speed > 0.4;
     if (playerMoving) this.playedThisStill = false;
 
-    const out: BrainOutput = { desiredX: 0, desiredZ: 0, anim: "idle", move: 0, lookAtPlayer: dist < 12 };
+    const out: BrainOutput = { desiredX: 0, desiredZ: 0, anim: "idle", move: 0, lookAtPlayer: dist < 12, spin: 0 };
+    if (this.plan) {
+      this.plan.left -= dt;
+      if (this.plan.left <= 0) {
+        this.plan = null;
+        if (this.state !== "follow") this.enter("follow");
+      }
+    }
+    const held = this.plan !== null && this.plan.act !== "follow";
     const walkTo = (tx: number, tz: number, speed: number, stopAt: number): boolean => {
       const vx = tx - pet.pos.x;
       const vz = tz - pet.pos.z;
@@ -183,6 +294,7 @@ export class PetBrain {
       }
       case "sit": {
         out.anim = "sit";
+        if (held) break;
         if (Math.hypot(player.pos.x - this.sitAnchor.x, player.pos.z - this.sitAnchor.z) > 3) this.enter("follow");
         else if (input.playerIdle > 10 && !this.playedThisStill) {
           this.playedThisStill = true;
@@ -191,8 +303,10 @@ export class PetBrain {
         break;
       }
       case "sniff": {
+        if (!this.target && held) this.target = this.nearestInterest(pet, input.interest);
         const t = this.target;
-        if (!t || this.time > 10 || dist > 16) {
+        if (!t || this.time > (held ? 15 : 10) || dist > (held ? 30 : 16)) {
+          if (held) this.plan = null;
           this.sniffCooldown = SNIFF_COOLDOWN;
           this.enter("follow");
           break;
@@ -205,6 +319,7 @@ export class PetBrain {
           this.dwell += dt;
           if (this.dwell > 1.5) {
             this.sniffCooldown = SNIFF_COOLDOWN;
+            if (this.plan?.act === "sniff") this.plan = null;
             this.visited.push(t);
             if (this.visited.length > 12) this.visited.shift();
             if (this.rng() < 0.3) {
@@ -221,12 +336,14 @@ export class PetBrain {
         if (this.time > 1.4) {
           const t = this.target ?? { x: pet.pos.x, z: pet.pos.z };
           this.events.dug?.(t.x, t.z);
+          if (this.plan?.act === "dig") this.plan = null;
           this.enter("follow");
         }
         break;
       }
       case "play": {
         if (this.time > 12 || dist > 14) {
+          if (this.plan?.act === "play") this.plan = null;
           this.enter("follow");
           break;
         }
@@ -252,8 +369,71 @@ export class PetBrain {
         if (this.time > 1) this.enter("follow");
         break;
       }
+      case "stay": {
+        if (!held) this.enter("follow");
+        break;
+      }
+      case "come": {
+        if (!held) {
+          this.enter("follow");
+          break;
+        }
+        // Walk right up to the person, then stay put.
+        walkTo(player.pos.x, player.pos.z, PET_BASE_SPEED * (dist > 7 ? 1.6 : 1.1), 1.4 + pet.radius);
+        break;
+      }
+      case "trick": {
+        out.anim = "happy";
+        out.spin = Math.min(1, this.time / 1.2) * Math.PI * 2;
+        if (this.trickHops > 0 && this.time > 1.2 + (2 - this.trickHops) * 0.5) {
+          this.trickHops--;
+          this.events.hop?.(1.2);
+        }
+        if (this.time > 3) {
+          this.plan = null;
+          this.enter("follow");
+        }
+        break;
+      }
+      case "sleep": {
+        out.anim = "sit";
+        out.lookAtPlayer = false;
+        this.zIn -= dt;
+        if (this.zIn <= 0) {
+          this.zIn = 3;
+          this.events.glyph?.("z");
+        }
+        if (!held) this.enter("follow");
+        break;
+      }
+      case "go_to": {
+        const t = this.target;
+        if (!held || !t) {
+          this.plan = null;
+          this.enter("follow");
+          break;
+        }
+        if (walkTo(t.x, t.z, PET_BASE_SPEED * 1.3, 1.5)) {
+          out.anim = "sniff";
+          out.lookAtPlayer = false;
+        }
+        break;
+      }
     }
     return out;
+  }
+
+  private nearestInterest(pet: Body, interest: BrainInput["interest"]): { x: number; z: number } | null {
+    let best: { x: number; z: number } | null = null;
+    let bestD = 25;
+    for (const p of interest) {
+      const d = Math.hypot(p.x - pet.pos.x, p.z - pet.pos.z);
+      if (d < bestD) {
+        bestD = d;
+        best = p;
+      }
+    }
+    return best;
   }
 
   private pickSniffSpot(pet: Body, interest: BrainInput["interest"]): { x: number; z: number } | null {

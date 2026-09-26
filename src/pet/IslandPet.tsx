@@ -59,12 +59,14 @@ export default function IslandPet({ world }: { world: WorldData }) {
     let anim: PetAnimState = "idle";
     let move = 0;
     let lookAtPlayer = false;
+    let spin = 0;
     if (mode === "companion") {
       const out = brain.update(dt, { pet, player, playerIdle: runtime.idleTime, interest: world.interest });
       stepBody(pet, out.desiredX, out.desiredZ, dt, world);
       anim = out.anim;
       move = out.move;
       lookAtPlayer = out.lookAtPlayer;
+      spin = out.spin;
     } else {
       // Controlled by the player: animation from speed, plus Space actions while standing.
       const act = runtime.petAction;
@@ -87,7 +89,7 @@ export default function IslandPet({ world }: { world: WorldData }) {
     const g = ref.current;
     if (g) {
       g.position.copy(pet.pos);
-      g.rotation.y = pet.yaw;
+      g.rotation.y = pet.yaw + spin;
     }
   });
 

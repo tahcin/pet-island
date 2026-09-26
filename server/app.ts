@@ -8,6 +8,8 @@ import {
   type ImageType,
   type ParseClient,
 } from "./petReading";
+import { TalkRequestSchema, defaultTalkClient, petTalk } from "./petTalk";
+import { ChatRequestSchema, villagerChat } from "./villagerChat";
 
 export interface AppDeps {
   /** Claude client override for tests; undefined uses the real SDK when a key is set. */
@@ -57,6 +59,34 @@ export function createApp(deps: AppDeps = {}): Hono {
     const r = await readPetDetails(img.data, img.mediaType, deps.claude);
     console.log(`/api/pet/details ${r.fallback ? `fallback (${r.reason})` : "ok"} in ${r.ms} ms`);
     return c.json({ details: r.value, fallback: r.fallback, reason: r.reason, ms: r.ms });
+  });
+
+  app.post("/api/pet/talk", async (c) => {
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Send JSON." }, 400);
+    }
+    const parsed = TalkRequestSchema.safeParse(body);
+    if (!parsed.success) return c.json({ error: "Bad talk request." }, 400);
+    const r = await petTalk(parsed.data, deps.claude === undefined ? defaultTalkClient() : deps.claude);
+    console.log(`/api/pet/talk ${r.fallback ? `fallback (${r.reason})` : "ok"} in ${r.ms} ms`);
+    return c.json({ talk: r.fallback ? null : r.value, fallback: r.fallback, reason: r.reason, ms: r.ms });
+  });
+
+  app.post("/api/villagers/chat", async (c) => {
+    let body: unknown;
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: "Send JSON." }, 400);
+    }
+    const parsed = ChatRequestSchema.safeParse(body);
+    if (!parsed.success) return c.json({ error: "Bad chat request." }, 400);
+    const r = await villagerChat(parsed.data, deps.claude === undefined ? defaultTalkClient() : deps.claude);
+    console.log(`/api/villagers/chat ${r.fallback ? `fallback (${r.reason})` : "ok"} in ${r.ms} ms`);
+    return c.json({ chat: r.fallback ? null : r.value, fallback: r.fallback, reason: r.reason, ms: r.ms });
   });
 
   return app;

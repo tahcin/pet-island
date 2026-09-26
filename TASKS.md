@@ -91,19 +91,19 @@ Tick an item only when its acceptance criteria in `PRD.md` pass. Commit at the e
 
 ## M6 Living island
 
-- [ ] Check the reading already carries `mind` and villager `persona` (built into the schema in M1 and the prompt in M2) and the default reading has them too
-- [ ] `/api/pet/talk` with `PetTalkSchema`, 12 s timeout, fallback (PRD 9.9)
-- [ ] `talk/perception.ts` (pure), `talk/offlineIntent.ts`, `talk/petMind.ts` queue, plans, memory
-- [ ] TalkBar with chips, player bubble, thinking dots, typewriter reply with animalese
-- [ ] Acts drive the pet brain with plan durations, mood glyphs on change
-- [ ] `save/save.ts`: autosave every 20 s and on hide, load, version check, try/catch everywhere (PRD 9.11)
-- [ ] Landing "Continue with {name}" card and "Start fresh" link
-- [ ] Return news (shells wash up, villager memories) and the pet's return greeting
-- [ ] `/api/villagers/chat` with `VillagerChatSchema`, meetup trigger every 75 s, playback, villager memory (PRD 9.10)
-- [ ] Quest completion adds a villager memory
-- [ ] Unit tests: perception, offline intent, save round-trip and corrupt save, return news
-- [ ] Playwright: mocked talk route, "sit" makes the pet sit; reload shows "Continue with {name}"
-- [ ] Commit "M6 living island"
+- [x] Check the reading already carries `mind` and villager `persona` (built into the schema in M1 and the prompt in M2) and the default reading has them too
+- [x] `/api/pet/talk` with `PetTalkSchema`, 12 s timeout, fallback (PRD 9.9)
+- [x] `talk/perception.ts` (pure), `talk/offlineIntent.ts`, `talk/petMind.ts` queue, plans, memory
+- [x] TalkBar with chips, player bubble, thinking dots, typewriter reply with animalese
+- [x] Acts drive the pet brain with plan durations, mood glyphs on change
+- [x] `save/save.ts`: autosave every 20 s and on hide, load, version check, try/catch everywhere (PRD 9.11)
+- [x] Landing "Continue with {name}" card and "Start fresh" link
+- [x] Return news (shells wash up, villager memories) and the pet's return greeting
+- [x] `/api/villagers/chat` with `VillagerChatSchema`, meetup trigger every 75 s, playback, villager memory (PRD 9.10)
+- [x] Quest completion adds a villager memory
+- [x] Unit tests: perception, offline intent, save round-trip and corrupt save, return news
+- [x] Playwright: mocked talk route, "sit" makes the pet sit; reload shows "Continue with {name}"
+- [x] Commit "M6 living island"
 
 ## M7 Juice
 

@@ -1,0 +1,133 @@
+.talk-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 40;
+}
+.talk-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.talk-chip {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #fff8ec;
+  color: #6b4f3a;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 rgba(107, 79, 58, 0.25);
+}
+.talk-chip:hover {
+  background: #ffe9c7;
+}
+.talk-form {
+  display: flex;
+  gap: 8px;
+  background: #fff8ec;
+  border-radius: 999px;
+  padding: 6px 6px 6px 16px;
+  box-shadow: 0 4px 0 rgba(107, 79, 58, 0.25);
+}
+.talk-input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 16px;
+  color: #4a3728;
+  min-width: 0;
+}
+.talk-send {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 18px;
+  background: #7cc6a4;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.talk-toast {
+  position: absolute;
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  background: #fff8ec;
+  color: #6b4f3a;
+  padding: 8px 16px;
+  border-radius: 12px;
+  box-shadow: 0 3px 0 rgba(107, 79, 58, 0.25);
+  z-index: 41;
+  max-width: calc(100vw - 32px);
+}
+.pi-bubble.talk-player {
+  background: #dff0ff;
+  color: #2f4a63;
+}
+.pi-bubble.talk-dots {
+  display: flex;
+  gap: 5px;
+  padding: 10px 14px;
+}
+.talk-dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a08670;
+  animation: talk-dot 0.9s ease-in-out infinite;
+}
+.talk-dots span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.talk-dots span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes talk-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.landing-continue {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff8ec;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin: 8px 0 14px;
+  box-shadow: 0 3px 0 rgba(107, 79, 58, 0.2);
+  text-align: left;
+}
+.landing-continue-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex: none;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1px rgba(107, 79, 58, 0.25);
+}
+.landing-continue-info {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: #6b4f3a;
+}
+.landing-continue-info strong {
+  display: block;
+  font-size: 17px;
+  color: #4a3728;
+}
